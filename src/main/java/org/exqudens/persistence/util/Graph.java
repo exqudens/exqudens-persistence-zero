@@ -32,10 +32,10 @@ public class Graph<T> {
         visited = new boolean[size];
         matrix = new boolean[size][size];
         for (Entry<T, T> relation : relations) {
-            int startIndex = nodes.indexOf(relation.getKey());
-            int endIndex = nodes.indexOf(relation.getValue());
-            matrix[startIndex][endIndex] = true;
-            matrix[endIndex][startIndex] = true;
+            int y = nodes.indexOf(relation.getKey());
+            int x = nodes.indexOf(relation.getValue());
+            matrix[y][x] = true;
+            matrix[x][y] = true;
         }
     }
 

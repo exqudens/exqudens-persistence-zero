@@ -24,7 +24,7 @@ public class TestGraph {
         Assert.assertTrue(true);
     }
 
-    @Ignore
+    //@Ignore
     @Test
     public void test1() {
         Object a = 'A';
