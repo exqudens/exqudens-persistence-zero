@@ -1,4 +1,4 @@
-package org.exqudens.persistence.test.model.a;
+package org.exqudens.persistence.test.model;
 
 import java.util.Date;
 import java.util.List;
@@ -31,7 +31,7 @@ import lombok.ToString;
 @ToString(of = "id")
 @Entity
 @Table(name = "item")
-public class Item {
+public class ItemB {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -53,15 +53,10 @@ public class Item {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
     @Fetch(FetchMode.SELECT)
-    private Order order;
+    private OrderB order;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "parent_id")
+    @OneToMany(mappedBy = "item", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SELECT)
-    private Item parent;
-
-    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @Fetch(FetchMode.SELECT)
-    private List<Item> children;
+    private List<UserB> users;
 
 }

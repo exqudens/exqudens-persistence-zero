@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.exqudens.persistence.test.model.a.Item;
-import org.exqudens.persistence.test.model.a.Order;
-import org.exqudens.persistence.test.model.a.Seller;
-import org.exqudens.persistence.test.model.a.User;
+import org.exqudens.persistence.test.model.ItemA;
+import org.exqudens.persistence.test.model.OrderA;
+import org.exqudens.persistence.test.model.SellerA;
+import org.exqudens.persistence.test.model.UserA;
 import org.exqudens.persistence.util.Graph;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -66,10 +66,10 @@ public class TestGraph {
     //@Ignore
     @Test
     public void test2() {
-        Object user = User.class.getSimpleName();
-        Object seller = Seller.class.getSimpleName();
-        Object order = Order.class.getSimpleName();
-        Object item = Item.class.getSimpleName();
+        Object user = UserA.class.getSimpleName();
+        Object seller = SellerA.class.getSimpleName();
+        Object order = OrderA.class.getSimpleName();
+        Object item = ItemA.class.getSimpleName();
 
         List<Object> nodes = Arrays.asList(user, seller, order, item);
         List<Entry<Object, Object>> relations = Arrays.asList(

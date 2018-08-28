@@ -1,4 +1,4 @@
-package org.exqudens.persistence.test.model.a;
+package org.exqudens.persistence.test.model;
 
 import java.util.Date;
 import java.util.List;
@@ -10,6 +10,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -28,12 +30,12 @@ import lombok.ToString;
 @Setter
 @ToString(of = "id")
 @Entity
-@Table(name = "seller")
-public class Seller {
+@Table(name = "item")
+public class ItemA {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "seller_id")
+    @Column(name = "item_id")
     private Long id;
 
     @Column(
@@ -45,11 +47,21 @@ public class Seller {
     )
     private Date modified;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "description")
+    private String description;
 
-    @OneToMany(mappedBy = "seller", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id")
     @Fetch(FetchMode.SELECT)
-    private List<Order> orders;
+    private OrderA order;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_id")
+    @Fetch(FetchMode.SELECT)
+    private ItemA parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SELECT)
+    private List<ItemA> children;
 
 }

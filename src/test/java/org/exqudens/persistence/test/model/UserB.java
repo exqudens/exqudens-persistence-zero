@@ -1,4 +1,4 @@
-package org.exqudens.persistence.test.model.b;
+package org.exqudens.persistence.test.model;
 
 import java.util.Date;
 import java.util.List;
@@ -30,12 +30,12 @@ import lombok.ToString;
 @Setter
 @ToString(of = "id")
 @Entity
-@Table(name = "item")
-public class Item {
+@Table(name = "user")
+public class UserB {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "item_id")
+    @Column(name = "user_id")
     private Long id;
 
     @Column(
@@ -47,16 +47,16 @@ public class Item {
     )
     private Date modified;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "email")
+    private String email;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "item_id")
     @Fetch(FetchMode.SELECT)
-    private Order order;
+    private ItemB item;
 
-    @OneToMany(mappedBy = "item", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SELECT)
-    private List<User> users;
+    private List<OrderB> orders;
 
 }

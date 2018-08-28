@@ -10,10 +10,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.exqudens.persistence.test.model.a.Item;
-import org.exqudens.persistence.test.model.a.Order;
-import org.exqudens.persistence.test.model.a.Seller;
-import org.exqudens.persistence.test.model.a.User;
+import org.exqudens.persistence.test.model.ItemA;
+import org.exqudens.persistence.test.model.OrderA;
+import org.exqudens.persistence.test.model.SellerA;
+import org.exqudens.persistence.test.model.UserA;
 import org.exqudens.persistence.util.RecursionUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -24,22 +24,22 @@ public class TestRecursionUtils {
     @Test
     public void testEntitiesA() {
         try {
-            List<User> users = new ArrayList<>();
-            List<Seller> sellers = new ArrayList<>();
-            List<Order> orders = new ArrayList<>();
-            List<Item> items = new ArrayList<>();
+            List<UserA> users = new ArrayList<>();
+            List<SellerA> sellers = new ArrayList<>();
+            List<OrderA> orders = new ArrayList<>();
+            List<ItemA> items = new ArrayList<>();
 
-            users.add(new User(null, null, "email_" + 1, new ArrayList<>()));
+            users.add(new UserA(null, null, "email_" + 1, new ArrayList<>()));
 
-            sellers.add(new Seller(null, null, "name_" + 1, new ArrayList<>()));
+            sellers.add(new SellerA(null, null, "name_" + 1, new ArrayList<>()));
 
-            orders.add(new Order(null, null, "orderNumber_" + 1, null, null, new ArrayList<>()));
-            orders.add(new Order(null, null, "orderNumber_" + 2, null, null, new ArrayList<>()));
-            orders.add(new Order(null, null, "orderNumber_" + 3, null, null, new ArrayList<>()));
+            orders.add(new OrderA(null, null, "orderNumber_" + 1, null, null, new ArrayList<>()));
+            orders.add(new OrderA(null, null, "orderNumber_" + 2, null, null, new ArrayList<>()));
+            orders.add(new OrderA(null, null, "orderNumber_" + 3, null, null, new ArrayList<>()));
 
-            items.add(new Item(null, null, "description_" + 1, null, null, new ArrayList<>()));
-            items.add(new Item(null, null, "description_" + 2, null, null, new ArrayList<>()));
-            items.add(new Item(null, null, "description_" + 3, null, null, new ArrayList<>()));
+            items.add(new ItemA(null, null, "description_" + 1, null, null, new ArrayList<>()));
+            items.add(new ItemA(null, null, "description_" + 2, null, null, new ArrayList<>()));
+            items.add(new ItemA(null, null, "description_" + 3, null, null, new ArrayList<>()));
 
             users.get(0).getOrders().addAll(orders);
 

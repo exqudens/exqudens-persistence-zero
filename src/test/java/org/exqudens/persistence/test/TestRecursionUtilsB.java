@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.exqudens.persistence.test.model.b.Item;
-import org.exqudens.persistence.test.model.b.Order;
-import org.exqudens.persistence.test.model.b.User;
+import org.exqudens.persistence.test.model.ItemB;
+import org.exqudens.persistence.test.model.OrderB;
+import org.exqudens.persistence.test.model.UserB;
 import org.exqudens.persistence.util.RecursionUtils;
 import org.junit.Test;
 
@@ -16,18 +16,18 @@ public class TestRecursionUtilsB {
     @Test
     public void testEntitiesB() {
         try {
-            List<User> users = new ArrayList<>();
-            List<Order> orders = new ArrayList<>();
-            List<Item> items = new ArrayList<>();
+            List<UserB> users = new ArrayList<>();
+            List<OrderB> orders = new ArrayList<>();
+            List<ItemB> items = new ArrayList<>();
 
-            users.add(new User(null, null, "email_" + 1, null, new ArrayList<>()));
+            users.add(new UserB(null, null, "email_" + 1, null, new ArrayList<>()));
 
-            orders.add(new Order(null, null, "orderNumber_" + 1, null, new ArrayList<>()));
-            orders.add(new Order(null, null, "orderNumber_" + 2, null, new ArrayList<>()));
+            orders.add(new OrderB(null, null, "orderNumber_" + 1, null, new ArrayList<>()));
+            orders.add(new OrderB(null, null, "orderNumber_" + 2, null, new ArrayList<>()));
 
-            items.add(new Item(null, null, "description_" + 1, null, new ArrayList<>()));
-            items.add(new Item(null, null, "description_" + 2, null, new ArrayList<>()));
-            items.add(new Item(null, null, "description_" + 3, null, new ArrayList<>()));
+            items.add(new ItemB(null, null, "description_" + 1, null, new ArrayList<>()));
+            items.add(new ItemB(null, null, "description_" + 2, null, new ArrayList<>()));
+            items.add(new ItemB(null, null, "description_" + 3, null, new ArrayList<>()));
 
             users.get(0).getOrders().addAll(orders);
 
