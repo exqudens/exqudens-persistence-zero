@@ -2,16 +2,18 @@ package org.exqudens.persistence.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -24,52 +26,87 @@ public class Utils {
     }
 
     public static List<List<Class<?>>> toUniDirectionGraphs(List<Entry<Class<?>, Class<?>>> relations) {
-
-        System.out.println("---------------");
-        System.out.println(relations.stream().map(entry -> entry.getKey().getName() + " ---> " + entry.getValue().getName()).collect(Collectors.joining(System.lineSeparator())));
-        System.out.println("---------------");
-
         List<List<Class<?>>> graphs = new ArrayList<>();
         List<Class<?>> newGraph = new ArrayList<>();
         newGraph.add(relations.get(0).getKey());
         newGraph.add(relations.get(0).getValue());
         graphs.add(newGraph);
-
         newGraph = null;
-
         for (int i = 1; i < relations.size(); i++) {
-
             Entry<Class<?>, Class<?>> relation = relations.get(i);
             Class<?> key = relation.getKey();
             Class<?> value = relation.getValue();
-
             for (List<Class<?>> graph : graphs) {
-
                 int min = 0;
                 int max = graph.size() - 1;
-
                 if (graph.get(min).equals(key)) {
                     graph.add(0, value);
+                    newGraph = null;
+                    break;
                 } else if (graph.get(min).equals(value)) {
                     graph.add(0, key);
+                    newGraph = null;
+                    break;
                 } else if (graph.get(max).equals(key)) {
                     graph.add(value);
+                    newGraph = null;
+                    break;
                 } else if (graph.get(max).equals(value)) {
                     graph.add(key);
-                } else {
-                    newGraph = new ArrayList<>();
-                    newGraph.add(key);
-                    newGraph.add(value);
+                    newGraph = null;
                     break;
+                } else {
+                    if (newGraph == null) {
+                        newGraph = new ArrayList<>();
+                        newGraph.add(key);
+                        newGraph.add(value);
+                    }
                 }
             }
-
             if (newGraph != null) {
                 graphs.add(newGraph);
                 newGraph = null;
             }
         }
+        return graphs;
+    }
 
+    public static List<List<Class<?>>> toGraphs(List<Entry<Class<?>, Class<?>>> relations) {
+        List<List<Class<?>>> graphs = new ArrayList<>();
+        List<Class<?>> newGraph = new ArrayList<>();
+        newGraph.add(relations.get(0).getKey());
+        newGraph.add(relations.get(0).getValue());
+        graphs.add(newGraph);
+        newGraph = null;
+        for (int i = 1; i < relations.size(); i++) {
+            Entry<Class<?>, Class<?>> relation = relations.get(i);
+            Class<?> key = relation.getKey();
+            Class<?> value = relation.getValue();
+            for (List<Class<?>> graph : graphs) {
+                if (graph.contains(key) && graph.contains(value)) {
+                    newGraph = null;
+                    break;
+                } else if (graph.contains(key) && !graph.contains(value)) {
+                    graph.add(value);
+                    newGraph = null;
+                    break;
+                } else if (graph.contains(value) && !graph.contains(key)) {
+                    graph.add(key);
+                    newGraph = null;
+                    break;
+                } else {
+                    if (newGraph == null) {
+                        newGraph = new ArrayList<>();
+                        newGraph.add(key);
+                        newGraph.add(value);
+                    }
+                }
+            }
+            if (newGraph != null) {
+                graphs.add(newGraph);
+                newGraph = null;
+            }
+        }
         return graphs;
     }
 
@@ -82,13 +119,25 @@ public class Utils {
                 for (Class<? extends Annotation> annotationClass : annotationClasses) {
                     Annotation annotation = field.getAnnotation(annotationClass);
                     if (annotation != null) {
-                        associatedClasses.add(field.getType());
+                        Class<?> type = field.getType();
+                        if (Collection.class.isAssignableFrom(type)) {
+                            ParameterizedType parameterizedType = ParameterizedType.class.cast(field.getGenericType());
+                            Type genericType = parameterizedType.getActualTypeArguments()[0];
+                            type = Class.class.cast(genericType);
+                        }
+                        if (classes.contains(type)) {
+                            associatedClasses.add(type);
+                        }
                     }
                 }
             }
             for (Class<?> associatedClass : associatedClasses) {
                 if (!c.equals(associatedClass)) {
-                    relations.add(new SimpleEntry<>(c, associatedClass));
+                    Entry<Class<?>, Class<?>> newEntry = new SimpleEntry<>(c, associatedClass);
+                    Entry<Class<?>, Class<?>> checkEntry = new SimpleEntry<>(associatedClass, c);
+                    if (!relations.contains(newEntry) && !relations.contains(checkEntry)) {
+                        relations.add(newEntry);
+                    }
                 }
             }
         }
