@@ -3,16 +3,22 @@ package org.exqudens.persistence.test;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
+import org.exqudens.persistence.test.model.ModelC;
 import org.exqudens.persistence.test.model.OrderA;
 import org.exqudens.persistence.test.model.OrderB;
 import org.exqudens.persistence.test.model.SellerA;
@@ -26,7 +32,60 @@ public class TmpTestUtils {
 
     //@Ignore
     @Test
-    public void test() {
+    public void test00() {
+        try {
+            Class<?> entityClass = ModelC.class;
+            List<Class<? extends Annotation>> hierarchyAnnotationClasses = Arrays.asList(MappedSuperclass.class);
+            List<Class<? extends Annotation>> relationAnnotationClasses = Arrays.asList(ManyToOne.class);
+            List<Entry<Class<?>, Class<?>>> relations = Utils.getRelations(entityClass, hierarchyAnnotationClasses, relationAnnotationClasses);
+            System.out.println("---");
+            System.out.println(relations.stream().map(Object::toString).collect(Collectors.joining(System.lineSeparator())));
+            System.out.println("---");
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Ignore
+    @Test
+    public void test01() {
+        try {
+            List<List<Class<? extends Annotation>>> annotationClassHierarchies;
+            annotationClassHierarchies = Arrays.asList(
+                Arrays.asList(Column.class),
+                Arrays.asList(JoinColumn.class),
+                Arrays.asList(JoinColumns.class, JoinColumn.class)
+            );
+            Map<String, List<String>> propertyColumnNames = Utils.getPropertyColumnNames(ModelC.class, Arrays.asList(MappedSuperclass.class), annotationClassHierarchies);
+            System.out.println("---");
+            //System.out.println(propertyColumnNames.entrySet().stream().map(Object::toString).collect(Collectors.joining(System.lineSeparator())));
+            Object a = "a";
+            System.out.println(a.getClass().getName());
+            System.out.println(a.getClass().getSuperclass().getName());
+            System.out.println(a.getClass().getSuperclass().getSuperclass() == null);
+            System.out.println("---");
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Ignore
+    @Test
+    public void test02() {
         try {
             List<Class<?>> nodes;
             //nodes = Arrays.asList(SellerA.class, UserA.class, OrderA.class, ItemA.class);
@@ -50,23 +109,6 @@ public class TmpTestUtils {
             /*List<Class<?>> rootNodes = Arrays.asList(nodes.get(0), nodes.get(1));
             String result = Utils.breadthFirstSearch(nodes, relations, rootNodes).toString();
             System.out.println(result);*/
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Ignore
-    @Test
-    public void test00() {
-        try {
-            System.out.println("test00");
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;

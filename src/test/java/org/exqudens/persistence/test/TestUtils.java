@@ -7,9 +7,14 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.persistence.ManyToOne;
+import javax.persistence.MappedSuperclass;
 
+import org.exqudens.persistence.test.model.AbstractModelC1;
+import org.exqudens.persistence.test.model.AbstractModelC2;
+import org.exqudens.persistence.test.model.AbstractModelC3;
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
+import org.exqudens.persistence.test.model.ModelC;
 import org.exqudens.persistence.test.model.OrderA;
 import org.exqudens.persistence.test.model.OrderB;
 import org.exqudens.persistence.test.model.SellerA;
@@ -71,6 +76,25 @@ public class TestUtils {
             .map(Object::toString)
             .collect(Collectors.toList());
 
+            Assert.assertTrue(ethalon.containsAll(result));
+            Assert.assertTrue(result.containsAll(ethalon));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testGetHierarchyC() {
+        try {
+            List<Class<?>> ethalon = Arrays.asList(AbstractModelC1.class, AbstractModelC2.class, AbstractModelC3.class, ModelC.class);
+            List<Class<?>> result = Utils.getHierarchy(ModelC.class, Arrays.asList(MappedSuperclass.class));
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
         } catch (RuntimeException e) {

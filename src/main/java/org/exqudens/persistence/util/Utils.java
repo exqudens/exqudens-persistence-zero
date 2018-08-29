@@ -2,6 +2,8 @@ package org.exqudens.persistence.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleEntry;
@@ -9,9 +11,12 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -23,6 +28,55 @@ public class Utils {
 
     public static <K, V> Entry<K, V> toImmutableEntry(K key, V value) {
         return new SimpleImmutableEntry<>(key, value);
+    }
+
+    public static Map<String, List<String>> getPropertyColumnNames(
+        Class<?> entityClass,
+        List<Class<? extends Annotation>> annotationClasses,
+        List<List<Class<? extends Annotation>>> annotationClassHierarchies
+    ) {
+        return getPropertyColumnNames(getHierarchy(entityClass, annotationClasses), annotationClassHierarchies);
+    }
+
+    public static Map<String, List<String>> getPropertyColumnNames(List<Class<?>> hierarchy, List<List<Class<? extends Annotation>>> annotationClassHierarchies) {
+        Map<String, List<String>> propertyColumnNames = new LinkedHashMap<>();
+        for (Class<?> c : hierarchy) {
+            for (Field field : c.getDeclaredFields()) {
+                
+            }
+            for (Method method : c.getDeclaredMethods()) {
+                
+            }
+        }
+        return propertyColumnNames;
+    }
+
+    public static List<Class<?>> getHierarchy(Class<?> entityClass, List<Class<? extends Annotation>> hierarchyAnnotationClasses) {
+        List<Class<?>> hierarchy = new ArrayList<>();
+        Class<?> superClass = entityClass;
+        while (superClass != null) {
+            hierarchy.add(0, superClass);
+            superClass = superClass.getSuperclass();
+            if (superClass != null) {
+                if (hierarchyAnnotationClasses == null || hierarchyAnnotationClasses.isEmpty()) {
+                    continue;
+                } else {
+                    boolean containsOne = false;
+                    for (Annotation annotation : superClass.getAnnotations()) {
+                        if (hierarchyAnnotationClasses.contains(annotation.annotationType())) {
+                            containsOne = true;
+                            break;
+                        }
+                    }
+                    if (!containsOne) {
+                        break;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        return hierarchy;
     }
 
     public static List<List<Class<?>>> toUniDirectionGraphs(List<Entry<Class<?>, Class<?>>> relations) {
@@ -139,6 +193,33 @@ public class Utils {
                         relations.add(newEntry);
                     }
                 }
+            }
+        }
+        return relations;
+    }
+
+    public static List<Entry<Class<?>, Class<?>>> getRelations(
+        Class<?> entityClass,
+        List<Class<? extends Annotation>> hierarchyAnnotationClasses,
+        List<Class<? extends Annotation>> relationAnnotationClasses
+    ) {
+        return getRelations(getHierarchy(entityClass, hierarchyAnnotationClasses), relationAnnotationClasses);
+    }
+
+    public static List<Entry<Class<?>, Class<?>>> getRelations(
+        List<Class<?>> hierarchy,
+        List<Class<? extends Annotation>> relationAnnotationClasses
+    ) {
+        List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
+        for (Class<?> c : hierarchy) {
+            for (Field field : c.getDeclaredFields()) {
+                boolean present = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> relationAnnotationClasses.contains(ac)).findAny().isPresent();
+                if (present) {
+                    Class<?> type = field.getType();
+                }
+            }
+            for (Method method : c.getDeclaredMethods()) {
+                
             }
         }
         return relations;
