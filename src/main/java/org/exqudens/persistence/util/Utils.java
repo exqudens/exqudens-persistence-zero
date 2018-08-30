@@ -12,12 +12,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 
 public class Utils {
@@ -223,6 +226,60 @@ public class Utils {
             }
         }
         return relations;
+    }
+
+    public static Set<String> getFieldNames(
+        Class<?> entityClass,
+        List<Class<? extends Annotation>> hierarchyAnnotationClasses,
+        List<Class<? extends Annotation>> includeAnnotationClasses,
+        List<Class<? extends Annotation>> excludeAnnotationClasses
+    ) {
+        return getFieldNames(getHierarchy(entityClass, hierarchyAnnotationClasses), includeAnnotationClasses, excludeAnnotationClasses);
+    }
+
+    public static Set<String> getFieldNames(
+        List<Class<?>> hierarchy,
+        List<Class<? extends Annotation>> includeAnnotationClasses,
+        List<Class<? extends Annotation>> excludeAnnotationClasses
+    ) {
+        Set<String> allFieldNames = new LinkedHashSet<>();
+        Set<String> fieldNames = new LinkedHashSet<>();
+        for (Class<?> c : hierarchy) {
+            Set<String> classFieldNames = new LinkedHashSet<>();
+            for (Field field : c.getDeclaredFields()) {
+                String fieldName = field.getName();
+                allFieldNames.add(fieldName);
+                boolean excludePresent = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                if (excludePresent) {
+                    fieldNames.remove(fieldName);
+                    classFieldNames.remove(fieldName);
+                    continue;
+                }
+                classFieldNames.add(fieldName);
+            }
+            Map<String, String> methodFieldNameMap = Stream
+            .concat(allFieldNames.stream(), classFieldNames.stream())
+            .map(fieldName -> new SimpleEntry<>("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1), fieldName))
+            .distinct()
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            for (Method method : c.getDeclaredMethods()) {
+                String fieldName = methodFieldNameMap.get(method.getName());
+                if (fieldName != null) {
+                    boolean excludePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                    if (excludePresent) {
+                        fieldNames.remove(fieldName);
+                        classFieldNames.remove(fieldName);
+                    } else {
+                        boolean includePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
+                        if (includePresent) {
+                            classFieldNames.add(fieldName);
+                        }
+                    }
+                }
+            }
+            fieldNames.addAll(classFieldNames);
+        }
+        return fieldNames;
     }
 
     public static <T> List<T> breadthFirstSearch(List<T> nodes, List<Entry<T, T>> relations, List<T> rootNodes) {

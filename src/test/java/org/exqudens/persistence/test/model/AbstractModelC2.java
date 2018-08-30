@@ -1,24 +1,25 @@
 package org.exqudens.persistence.test.model;
 
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public abstract class AbstractModelC2 extends AbstractModelC1 {
 
-    protected AbstractModelC2(Long id) {
+    @Column(name = "name")
+    private String name;
+
+    protected AbstractModelC2(Long id, String name) {
         super(id);
+        this.name = name;
     }
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    @Column(name = "id")
-    @Override
-    public Long getId() {
-        return super.getId();
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

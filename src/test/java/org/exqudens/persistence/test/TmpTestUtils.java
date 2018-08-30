@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.Column;
@@ -15,6 +16,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
@@ -36,10 +38,11 @@ public class TmpTestUtils {
         try {
             Class<?> entityClass = ModelC.class;
             List<Class<? extends Annotation>> hierarchyAnnotationClasses = Arrays.asList(MappedSuperclass.class);
-            List<Class<? extends Annotation>> relationAnnotationClasses = Arrays.asList(ManyToOne.class);
-            List<Entry<Class<?>, Class<?>>> relations = Utils.getRelations(entityClass, hierarchyAnnotationClasses, relationAnnotationClasses);
+            List<Class<? extends Annotation>> includeAnnotationClasses = Arrays.asList(Column.class);
+            List<Class<? extends Annotation>> excludeAnnotationClasses = Arrays.asList(Transient.class);
+            Set<String> fieldNames = Utils.getFieldNames(entityClass, hierarchyAnnotationClasses, includeAnnotationClasses, excludeAnnotationClasses);
             System.out.println("---");
-            System.out.println(relations.stream().map(Object::toString).collect(Collectors.joining(System.lineSeparator())));
+            System.out.println(fieldNames.stream().collect(Collectors.joining(System.lineSeparator())));
             System.out.println("---");
         } catch (RuntimeException e) {
             e.printStackTrace();
