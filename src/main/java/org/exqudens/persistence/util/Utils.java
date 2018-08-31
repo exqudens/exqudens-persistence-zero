@@ -3,7 +3,6 @@ package org.exqudens.persistence.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleEntry;
@@ -11,78 +10,28 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
 
-    public static <K, V> Entry<K, V> toEntry(K key, V value) {
+    public static <K, V> Entry<K, V> entry(K key, V value) {
         return new SimpleEntry<>(key, value);
     }
 
-    public static <K, V> Entry<K, V> toImmutableEntry(K key, V value) {
+    public static <K, V> Entry<K, V> immutableEntry(K key, V value) {
         return new SimpleImmutableEntry<>(key, value);
     }
 
-    public static Map<String, List<String>> getPropertyColumnNames(
-        Class<?> entityClass,
-        List<Class<? extends Annotation>> annotationClasses,
-        List<List<Class<? extends Annotation>>> annotationClassHierarchies
-    ) {
-        return getPropertyColumnNames(getHierarchy(entityClass, annotationClasses), annotationClassHierarchies);
-    }
-
-    public static Map<String, List<String>> getPropertyColumnNames(List<Class<?>> hierarchy, List<List<Class<? extends Annotation>>> annotationClassHierarchies) {
-        Map<String, List<String>> propertyColumnNames = new LinkedHashMap<>();
-        for (Class<?> c : hierarchy) {
-            for (Field field : c.getDeclaredFields()) {
-                
-            }
-            for (Method method : c.getDeclaredMethods()) {
-                
-            }
-        }
-        return propertyColumnNames;
-    }
-
-    public static List<Class<?>> getHierarchy(Class<?> entityClass, List<Class<? extends Annotation>> hierarchyAnnotationClasses) {
-        List<Class<?>> hierarchy = new ArrayList<>();
-        Class<?> superClass = entityClass;
-        while (superClass != null) {
-            hierarchy.add(0, superClass);
-            superClass = superClass.getSuperclass();
-            if (superClass != null) {
-                if (hierarchyAnnotationClasses == null || hierarchyAnnotationClasses.isEmpty()) {
-                    continue;
-                } else {
-                    boolean containsOne = false;
-                    for (Annotation annotation : superClass.getAnnotations()) {
-                        if (hierarchyAnnotationClasses.contains(annotation.annotationType())) {
-                            containsOne = true;
-                            break;
-                        }
-                    }
-                    if (!containsOne) {
-                        break;
-                    }
-                }
-            } else {
-                break;
-            }
-        }
-        return hierarchy;
-    }
-
-    public static List<List<Class<?>>> toUniDirectionGraphs(List<Entry<Class<?>, Class<?>>> relations) {
+    public static List<List<Class<?>>> uniDirectionGraphs(List<Entry<Class<?>, Class<?>>> relations) {
         List<List<Class<?>>> graphs = new ArrayList<>();
         List<Class<?>> newGraph = new ArrayList<>();
         newGraph.add(relations.get(0).getKey());
@@ -128,7 +77,7 @@ public class Utils {
         return graphs;
     }
 
-    public static List<List<Class<?>>> toGraphs(List<Entry<Class<?>, Class<?>>> relations) {
+    public static List<List<Class<?>>> graphs(List<Entry<Class<?>, Class<?>>> relations) {
         List<List<Class<?>>> graphs = new ArrayList<>();
         List<Class<?>> newGraph = new ArrayList<>();
         newGraph.add(relations.get(0).getKey());
@@ -167,24 +116,48 @@ public class Utils {
         return graphs;
     }
 
-    public static List<Entry<Class<?>, Class<?>>> getRelationsByFields(List<Class<?>> classes, List<Class<? extends Annotation>> annotationClasses) {
-        List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
-        for (Class<?> c : classes) {
-            List<Class<?>> associatedClasses = new ArrayList<>();
-            Field[] fields = c.getDeclaredFields();
-            for (Field field : fields) {
-                for (Class<? extends Annotation> annotationClass : annotationClasses) {
-                    Annotation annotation = field.getAnnotation(annotationClass);
-                    if (annotation != null) {
+    public static List<Entry<Class<?>, Class<?>>> relations(
+        List<Class<?>> hierarchy,
+        Set<String> fieldNames,
+        List<Class<? extends Annotation>> relationAnnotationClasses,
+        List<Entry<Class<?>, Class<?>>> relations
+    ) {
+        if (relations == null) {
+            relations = new ArrayList<>();
+        }
+        for (Class<?> c : hierarchy) {
+            Set<Class<?>> associatedClasses = new LinkedHashSet<>();
+            for (Field field : c.getDeclaredFields()) {
+                if (fieldNames.contains(field.getName())) {
+                    boolean present = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> relationAnnotationClasses.contains(ac)).findAny().isPresent();
+                    if (present) {
                         Class<?> type = field.getType();
                         if (Collection.class.isAssignableFrom(type)) {
                             ParameterizedType parameterizedType = ParameterizedType.class.cast(field.getGenericType());
                             Type genericType = parameterizedType.getActualTypeArguments()[0];
                             type = Class.class.cast(genericType);
                         }
-                        if (classes.contains(type)) {
-                            associatedClasses.add(type);
+                        associatedClasses.add(type);
+                    }
+                }
+            }
+            Map<String, String> methodFieldNameMap = fieldNames
+            .stream()
+            .map(fieldName -> new SimpleEntry<>("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1), fieldName))
+            .distinct()
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            for (Method method : c.getDeclaredMethods()) {
+                String fieldName = methodFieldNameMap.get(method.getName());
+                if (fieldName != null) {
+                    boolean present = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> relationAnnotationClasses.contains(ac)).findAny().isPresent();
+                    if (present) {
+                        Class<?> type = method.getReturnType();
+                        if (Collection.class.isAssignableFrom(type)) {
+                            ParameterizedType parameterizedType = ParameterizedType.class.cast(method.getGenericReturnType());
+                            Type genericType = parameterizedType.getActualTypeArguments()[0];
+                            type = Class.class.cast(genericType);
                         }
+                        associatedClasses.add(type);
                     }
                 }
             }
@@ -201,43 +174,7 @@ public class Utils {
         return relations;
     }
 
-    public static List<Entry<Class<?>, Class<?>>> getRelations(
-        Class<?> entityClass,
-        List<Class<? extends Annotation>> hierarchyAnnotationClasses,
-        List<Class<? extends Annotation>> relationAnnotationClasses
-    ) {
-        return getRelations(getHierarchy(entityClass, hierarchyAnnotationClasses), relationAnnotationClasses);
-    }
-
-    public static List<Entry<Class<?>, Class<?>>> getRelations(
-        List<Class<?>> hierarchy,
-        List<Class<? extends Annotation>> relationAnnotationClasses
-    ) {
-        List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
-        for (Class<?> c : hierarchy) {
-            for (Field field : c.getDeclaredFields()) {
-                boolean present = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> relationAnnotationClasses.contains(ac)).findAny().isPresent();
-                if (present) {
-                    Class<?> type = field.getType();
-                }
-            }
-            for (Method method : c.getDeclaredMethods()) {
-                
-            }
-        }
-        return relations;
-    }
-
-    public static Set<String> getFieldNames(
-        Class<?> entityClass,
-        List<Class<? extends Annotation>> hierarchyAnnotationClasses,
-        List<Class<? extends Annotation>> includeAnnotationClasses,
-        List<Class<? extends Annotation>> excludeAnnotationClasses
-    ) {
-        return getFieldNames(getHierarchy(entityClass, hierarchyAnnotationClasses), includeAnnotationClasses, excludeAnnotationClasses);
-    }
-
-    public static Set<String> getFieldNames(
+    public static Set<String> fieldNames(
         List<Class<?>> hierarchy,
         List<Class<? extends Annotation>> includeAnnotationClasses,
         List<Class<? extends Annotation>> excludeAnnotationClasses
@@ -280,6 +217,34 @@ public class Utils {
             fieldNames.addAll(classFieldNames);
         }
         return fieldNames;
+    }
+
+    public static List<Class<?>> hierarchy(Class<?> entityClass, List<Class<? extends Annotation>> hierarchyAnnotationClasses) {
+        List<Class<?>> hierarchy = new ArrayList<>();
+        Class<?> superClass = entityClass;
+        while (superClass != null) {
+            hierarchy.add(0, superClass);
+            superClass = superClass.getSuperclass();
+            if (superClass != null) {
+                if (hierarchyAnnotationClasses == null || hierarchyAnnotationClasses.isEmpty()) {
+                    continue;
+                } else {
+                    boolean containsOne = false;
+                    for (Annotation annotation : superClass.getAnnotations()) {
+                        if (hierarchyAnnotationClasses.contains(annotation.annotationType())) {
+                            containsOne = true;
+                            break;
+                        }
+                    }
+                    if (!containsOne) {
+                        break;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        return hierarchy;
     }
 
     public static <T> List<T> breadthFirstSearch(List<T> nodes, List<Entry<T, T>> relations, List<T> rootNodes) {
