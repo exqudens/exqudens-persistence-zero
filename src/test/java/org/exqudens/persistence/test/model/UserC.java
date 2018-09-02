@@ -16,11 +16,17 @@ import org.hibernate.annotations.FetchMode;
 @Table(name = "user")
 public class UserC extends AbstractModelC3 {
 
+    private String email;
     private List<OrderC> orders;
 
-    public UserC(Long id, String name, List<OrderC> orders) {
+    public UserC(Long id, String name, String email, List<OrderC> orders) {
         super(id, name);
+        this.email = email;
         this.orders = orders;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     @Column
@@ -33,6 +39,10 @@ public class UserC extends AbstractModelC3 {
     @Fetch(FetchMode.SELECT)
     public List<OrderC> getOrders() {
         return orders;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setOrders(List<OrderC> orders) {

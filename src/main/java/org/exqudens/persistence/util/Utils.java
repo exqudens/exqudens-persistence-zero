@@ -177,7 +177,8 @@ public class Utils {
     public static Set<String> fieldNames(
         List<Class<?>> hierarchy,
         List<Class<? extends Annotation>> includeAnnotationClasses,
-        List<Class<? extends Annotation>> excludeAnnotationClasses
+        List<Class<? extends Annotation>> excludeAnnotationClasses,
+        boolean onlyIfIncludePresent
     ) {
         Set<String> allFieldNames = new LinkedHashSet<>();
         Set<String> fieldNames = new LinkedHashSet<>();
@@ -186,13 +187,17 @@ public class Utils {
             for (Field field : c.getDeclaredFields()) {
                 String fieldName = field.getName();
                 allFieldNames.add(fieldName);
+                boolean includePresent = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
                 boolean excludePresent = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
                 if (excludePresent) {
                     fieldNames.remove(fieldName);
                     classFieldNames.remove(fieldName);
                     continue;
+                } else if (onlyIfIncludePresent && includePresent) {
+                    classFieldNames.add(fieldName);
+                } else if (!onlyIfIncludePresent) {
+                    classFieldNames.add(fieldName);
                 }
-                classFieldNames.add(fieldName);
             }
             Map<String, String> methodFieldNameMap = Stream
             .concat(allFieldNames.stream(), classFieldNames.stream())
@@ -202,15 +207,13 @@ public class Utils {
             for (Method method : c.getDeclaredMethods()) {
                 String fieldName = methodFieldNameMap.get(method.getName());
                 if (fieldName != null) {
+                    boolean includePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
                     boolean excludePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
                     if (excludePresent) {
                         fieldNames.remove(fieldName);
                         classFieldNames.remove(fieldName);
-                    } else {
-                        boolean includePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
-                        if (includePresent) {
-                            classFieldNames.add(fieldName);
-                        }
+                    } else if (includePresent) {
+                        classFieldNames.add(fieldName);
                     }
                 }
             }

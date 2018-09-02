@@ -42,12 +42,28 @@ public class TmpTestUtils {
             List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
             for (Class<?> entityClass : entityClasses) {
                 List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
-                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses);
+                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
                 Utils.relations(hierarchy, fieldNames, relationAnnotationClasses, relations);
             }
             List<List<Class<?>>> graphs = Utils.graphs(relations);
             System.out.println("---");
             System.out.println(graphs.stream().map(Object::toString).collect(Collectors.joining(System.lineSeparator())));
+            System.out.println("---");
+
+            List<Class<?>> graph = graphs.stream().filter(g -> g.contains(OrderA.class)).findFirst().get();
+            System.out.println("---");
+            System.out.println(graph.toString());
+            System.out.println("---");
+            relations.clear();
+            for (Class<?> entityClass : graph) {
+                List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
+                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
+                Utils.relations(hierarchy, fieldNames, relationAnnotationClasses, relations);
+            }
+            List<Class<?>> rootNodes = Arrays.asList(UserA.class, SellerA.class);
+            List<Class<?>> breadthFirstSearch = Utils.breadthFirstSearch(graph, relations, rootNodes);
+            System.out.println("---");
+            System.out.println(breadthFirstSearch.toString());
             System.out.println("---");
         } catch (RuntimeException e) {
             e.printStackTrace();

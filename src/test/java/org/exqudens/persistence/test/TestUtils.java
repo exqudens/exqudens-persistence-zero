@@ -60,13 +60,26 @@ public class TestUtils {
     @Test
     public void test02FieldNames() {
         try {
-            Set<String> ethalon = Arrays.asList("id", "name", "orders").stream().collect(Collectors.toSet());
             Class<?> entityClass = UserC.class;
             List<Class<? extends Annotation>> hierarchyAnnotationClasses = Arrays.asList(MappedSuperclass.class);
             List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
-            List<Class<? extends Annotation>> includeAnnotationClasses = Arrays.asList(Column.class);
+            List<Class<? extends Annotation>> includeAnnotationClasses;
             List<Class<? extends Annotation>> excludeAnnotationClasses = Arrays.asList(Transient.class);
-            Set<String> result = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses);
+
+            Set<String> ethalon;
+            Set<String> result;
+
+            includeAnnotationClasses = Arrays.asList(Column.class, OneToMany.class);
+            ethalon = Arrays.asList("id", "name", "orders").stream().collect(Collectors.toSet());
+            result = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, true);
+
+            Assert.assertTrue(ethalon.containsAll(result));
+            Assert.assertTrue(result.containsAll(ethalon));
+
+            includeAnnotationClasses = Arrays.asList(Column.class);
+            ethalon = Arrays.asList("id", "email", "name", "orders").stream().collect(Collectors.toSet());
+            result = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
+
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
         } catch (RuntimeException e) {
@@ -107,7 +120,7 @@ public class TestUtils {
             result = new ArrayList<>();
             for (Class<?> entityClass : entityClasses) {
                 List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
-                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses);
+                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
                 Utils.relations(hierarchy, fieldNames, relationAnnotationClasses, result);
             }
 
