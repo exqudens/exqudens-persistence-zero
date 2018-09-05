@@ -1,18 +1,6 @@
 package org.exqudens.persistence.test;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
@@ -34,36 +22,9 @@ public class TmpTestUtils {
     @Test
     public void test00() {
         try {
-            List<Class<?>> entityClasses = Arrays.asList(SellerA.class, UserA.class, OrderA.class, ItemA.class, UserB.class, OrderB.class, ItemB.class, UserC.class, OrderC.class, ItemC.class);
-            List<Class<? extends Annotation>> hierarchyAnnotationClasses = Arrays.asList(MappedSuperclass.class);
-            List<Class<? extends Annotation>> includeAnnotationClasses = Arrays.asList(Column.class);
-            List<Class<? extends Annotation>> excludeAnnotationClasses = Arrays.asList(Transient.class);
-            List<Class<? extends Annotation>> relationAnnotationClasses = Arrays.asList(OneToMany.class, ManyToOne.class);
-            List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
-            for (Class<?> entityClass : entityClasses) {
-                List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
-                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
-                Utils.relations(hierarchy, fieldNames, relationAnnotationClasses, relations);
-            }
-            List<List<Class<?>>> graphs = Utils.graphs(relations);
+            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(OrderB.class, SellerA.class, UserA.class, OrderA.class, ItemA.class, UserB.class, OrderB.class, ItemB.class, UserC.class, OrderC.class, ItemC.class);
             System.out.println("---");
-            System.out.println(graphs.stream().map(Object::toString).collect(Collectors.joining(System.lineSeparator())));
-            System.out.println("---");
-
-            List<Class<?>> graph = graphs.stream().filter(g -> g.contains(OrderA.class)).findFirst().get();
-            System.out.println("---");
-            System.out.println(graph.toString());
-            System.out.println("---");
-            relations.clear();
-            for (Class<?> entityClass : graph) {
-                List<Class<?>> hierarchy = Utils.hierarchy(entityClass, hierarchyAnnotationClasses);
-                Set<String> fieldNames = Utils.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
-                Utils.relations(hierarchy, fieldNames, relationAnnotationClasses, relations);
-            }
-            List<Class<?>> rootNodes = Arrays.asList(UserA.class, SellerA.class);
-            List<Class<?>> breadthFirstSearch = Utils.breadthFirstSearch(graph, relations, rootNodes);
-            System.out.println("---");
-            System.out.println(breadthFirstSearch.toString());
+            System.out.println(insertOrder.toString());
             System.out.println("---");
         } catch (RuntimeException e) {
             e.printStackTrace();

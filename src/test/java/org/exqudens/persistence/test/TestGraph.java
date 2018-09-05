@@ -8,7 +8,7 @@ import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.OrderA;
 import org.exqudens.persistence.test.model.SellerA;
 import org.exqudens.persistence.test.model.UserA;
-import org.exqudens.persistence.util.Graph;
+import org.exqudens.persistence.util.tmp.Graph;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;

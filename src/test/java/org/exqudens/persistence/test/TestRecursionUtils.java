@@ -14,7 +14,7 @@ import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.OrderA;
 import org.exqudens.persistence.test.model.SellerA;
 import org.exqudens.persistence.test.model.UserA;
-import org.exqudens.persistence.util.RecursionUtils;
+import org.exqudens.persistence.util.tmp.RecursionUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 

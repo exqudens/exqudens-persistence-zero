@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.exqudens.persistence.test.model.ItemB;
 import org.exqudens.persistence.test.model.OrderB;
 import org.exqudens.persistence.test.model.UserB;
-import org.exqudens.persistence.util.RecursionUtils;
+import org.exqudens.persistence.util.tmp.RecursionUtils;
 import org.junit.Test;
 
 public class TestRecursionUtilsB {

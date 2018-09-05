@@ -1,4 +1,4 @@
-package org.exqudens.persistence.util;
+package org.exqudens.persistence.util.tmp;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.AbstractMap.SimpleImmutableEntry;
