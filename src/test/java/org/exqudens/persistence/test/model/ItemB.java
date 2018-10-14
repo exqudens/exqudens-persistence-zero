@@ -30,7 +30,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = "id")
 @Entity
-@Table(name = "item")
+@Table(name = "item_b")
 public class ItemB {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)

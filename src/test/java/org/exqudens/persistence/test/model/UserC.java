@@ -13,7 +13,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 @Entity
-@Table(name = "user")
+@Table(name = "user_c")
 public class UserC extends AbstractModelC3 {
 
     private String email;

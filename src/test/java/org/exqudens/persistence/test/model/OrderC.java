@@ -15,7 +15,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 @Entity
-@Table(name = "order")
+@Table(name = "order_c")
 public class OrderC extends AbstractModelC3 {
 
     private UserC user;
