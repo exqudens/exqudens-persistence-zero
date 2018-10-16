@@ -74,14 +74,14 @@ public class TestUtils {
 
             includeAnnotationClasses = Arrays.asList(Column.class, OneToMany.class);
             ethalon = Arrays.asList("id", "name", "orders").stream().collect(Collectors.toSet());
-            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, true);
+            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, true, false, false);
 
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
 
             includeAnnotationClasses = Arrays.asList(Column.class);
             ethalon = Arrays.asList("id", "email", "name", "orders").stream().collect(Collectors.toSet());
-            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false);
+            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false, false, false);
 
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
@@ -125,8 +125,8 @@ public class TestUtils {
             result = new ArrayList<>();
             for (Class<?> entityClass : entityClasses) {
                 List<Class<?>> hierarchy = Utils.INSTANCE.hierarchy(entityClass, hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-                Set<String> fieldNames = Utils.INSTANCE.fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false);
-                Utils.INSTANCE.relations(hierarchy, fieldNames, relationIncludeAnnotationClasses, relationExcludeAnnotationClasses, result);
+                Set<String> fieldNames = Utils.INSTANCE.fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false, false, false);
+                Utils.INSTANCE.relations(entityClasses, hierarchy, fieldNames, relationIncludeAnnotationClasses, relationExcludeAnnotationClasses, result);
             }
 
             Assert.assertTrue(ethalon.containsAll(result));

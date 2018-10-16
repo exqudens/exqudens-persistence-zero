@@ -106,6 +106,7 @@ public interface ClassProcessor {
     }
 
     default List<Entry<Class<?>, Class<?>>> relations(
+        List<Class<?>> entityClasses,
         List<Class<?>> hierarchy,
         Set<String> fieldNames,
         List<Class<? extends Annotation>> includeAnnotationClasses,
@@ -134,7 +135,7 @@ public interface ClassProcessor {
             }
             Map<String, String> methodFieldNameMap = fieldNames
             .stream()
-            .map(fieldName -> new SimpleEntry<>("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1), fieldName))
+            .map(fieldName -> new SimpleEntry<>(getterName(fieldName), fieldName))
             .distinct()
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
             for (Method method : c.getDeclaredMethods()) {
@@ -157,7 +158,7 @@ public interface ClassProcessor {
                 if (!c.equals(associatedClass)) {
                     Entry<Class<?>, Class<?>> newEntry = new SimpleEntry<>(c, associatedClass);
                     Entry<Class<?>, Class<?>> checkEntry = new SimpleEntry<>(associatedClass, c);
-                    if (!relations.contains(newEntry) && !relations.contains(checkEntry)) {
+                    if (!relations.contains(newEntry) && !relations.contains(checkEntry) && entityClasses.contains(associatedClass) && entityClasses.contains(c)) {
                         relations.add(newEntry);
                     }
                 }
@@ -170,7 +171,9 @@ public interface ClassProcessor {
         List<Class<?>> hierarchy,
         List<Class<? extends Annotation>> includeAnnotationClasses,
         List<Class<? extends Annotation>> excludeAnnotationClasses,
-        boolean onlyIfIncludePresent
+        boolean onlyIfIncludePresent,
+        boolean onlyIfAllIncludePresent,
+        boolean onlyIfAllExcludeNotPresent
     ) {
         Set<String> allFieldNames = new LinkedHashSet<>();
         Set<String> fieldNames = new LinkedHashSet<>();
@@ -179,8 +182,19 @@ public interface ClassProcessor {
             for (Field field : c.getDeclaredFields()) {
                 String fieldName = field.getName();
                 allFieldNames.add(fieldName);
-                boolean includePresent = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
-                boolean excludePresent = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                Set<Class<? extends Annotation>> fieldAnnotationClasses = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
+                boolean includePresent;
+                boolean excludePresent;
+                if (onlyIfAllIncludePresent) {
+                    includePresent = fieldAnnotationClasses.containsAll(includeAnnotationClasses);
+                } else {
+                    includePresent = fieldAnnotationClasses.stream().filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
+                }
+                if (onlyIfAllExcludeNotPresent) {
+                    excludePresent = fieldAnnotationClasses.containsAll(excludeAnnotationClasses);
+                } else {
+                    excludePresent = fieldAnnotationClasses.stream().filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                }
                 if (excludePresent) {
                     fieldNames.remove(fieldName);
                     classFieldNames.remove(fieldName);
@@ -193,14 +207,17 @@ public interface ClassProcessor {
             }
             Map<String, String> methodFieldNameMap = Stream
             .concat(allFieldNames.stream(), classFieldNames.stream())
-            .map(fieldName -> new SimpleEntry<>("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1), fieldName))
+            .map(fieldName -> new SimpleEntry<>(getterName(fieldName), fieldName))
             .distinct()
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
             for (Method method : c.getDeclaredMethods()) {
                 String fieldName = methodFieldNameMap.get(method.getName());
                 if (fieldName != null) {
-                    boolean includePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
-                    boolean excludePresent = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                    Set<Class<? extends Annotation>> methodAnnotationClasses = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
+                    boolean includePresent;
+                    boolean excludePresent;
+                    includePresent = methodAnnotationClasses.stream().filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
+                    excludePresent = methodAnnotationClasses.stream().filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
                     if (excludePresent) {
                         fieldNames.remove(fieldName);
                         classFieldNames.remove(fieldName);
@@ -237,6 +254,10 @@ public interface ClassProcessor {
             }
         }
         return hierarchy;
+    }
+
+    default String getterName(String fieldName) {
+        return "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
     }
 
 }
