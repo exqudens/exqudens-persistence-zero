@@ -193,4 +193,17 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
         }
     }
 
+    public List<Object> getAllGraphEntities(Object object) {
+        try {
+            
+            return null;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -86,8 +86,6 @@ public class Test1 {
             System.out.println(insertOrder.toString());
             System.out.println("---");
 
-            Utils.INSTANCE.toMany(entityClasses, users.get(0), null);
-
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
@@ -105,6 +103,26 @@ public class Test1 {
     public void test02() {
         try {
             System.out.println("test02");
+
+            List<Class<?>> entityClasses = Arrays.asList(SellerA.class, UserA.class, OrderA.class, ItemA.class, UserB.class, OrderB.class, ItemB.class, UserC.class, OrderC.class, ItemC.class);
+
+            List<UserB> users = new ArrayList<>();
+            List<OrderB> orders = new ArrayList<>();
+            List<ItemB> items = new ArrayList<>();
+
+            users.add(new UserB(null, null, "email_1", null, orders));
+            orders.add(new OrderB(null, null, "orderNumber_1", null, items));
+            items.add(new ItemB(null, null, "description_1", null, users));
+
+            users.get(0).setItem(items.get(0));
+            orders.get(0).setUser(users.get(0));
+            items.get(0).setOrder(orders.get(0));
+
+            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            System.out.println("---");
+            System.out.println(insertOrder.toString());
+            System.out.println("---");
+
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
