@@ -28,7 +28,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(of = "id")
+@ToString(of = "orderNumber")
 @Entity
 @Table(name = "order_b")
 public class OrderB {

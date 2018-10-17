@@ -3,7 +3,6 @@ package org.exqudens.persistence.test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
@@ -31,25 +30,23 @@ public class Test1 {
             List<OrderB> orders = new ArrayList<>();
             List<ItemB> items = new ArrayList<>();
 
-            //users.add(new UserA(null, null, "email_1", orders));
-            //orders.add(new OrderA(null, null, "orderNumber_1", users.get(0), sellers.get(0), items));
-            //items.add(new ItemA(null, null, "description_1", orders.get(0), null, new ArrayList<>()));
-
             users.add(new UserB(null, null, "email_1", null, orders));
             orders.add(new OrderB(null, null, "orderNumber_1", null, items));
             items.add(new ItemB(null, null, "description_1", null, users));
+            items.add(new ItemB(null, null, "description_2", null, users));
 
             users.get(0).setItem(items.get(0));
             orders.get(0).setUser(users.get(0));
             items.get(0).setOrder(orders.get(0));
+            items.get(1).setOrder(orders.get(0));
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            List<Object> allGraphEntities = Utils.INSTANCE.nodes(users.get(0), entityClasses);
             System.out.println("---");
-            System.out.println(insertOrder.toString());
+            for (Object entity : allGraphEntities) {
+                System.out.println(entity.toString());
+            }
             System.out.println("---");
 
-            Map<Integer, Object> entities = Utils.INSTANCE.toMany(entityClasses, users.get(0), null);
-            System.out.println(entities.size());
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;

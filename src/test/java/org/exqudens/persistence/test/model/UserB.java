@@ -28,7 +28,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(of = "id")
+@ToString(of = "email")
 @Entity
 @Table(name = "user_b")
 public class UserB {

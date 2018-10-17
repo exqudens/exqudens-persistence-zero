@@ -28,7 +28,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(of = "id")
+@ToString(of = "description")
 @Entity
 @Table(name = "item_b")
 public class ItemB {
