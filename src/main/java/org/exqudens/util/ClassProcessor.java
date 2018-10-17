@@ -129,7 +129,9 @@ public interface ClassProcessor {
                             Type genericType = parameterizedType.getActualTypeArguments()[0];
                             type = Class.class.cast(genericType);
                         }
-                        associatedClasses.add(type);
+                        if (entityClasses.contains(type)) {
+                            associatedClasses.add(type);
+                        }
                     }
                 }
             }
@@ -150,7 +152,9 @@ public interface ClassProcessor {
                             Type genericType = parameterizedType.getActualTypeArguments()[0];
                             type = Class.class.cast(genericType);
                         }
-                        associatedClasses.add(type);
+                        if (entityClasses.contains(type)) {
+                            associatedClasses.add(type);
+                        }
                     }
                 }
             }
@@ -158,7 +162,7 @@ public interface ClassProcessor {
                 if (!c.equals(associatedClass)) {
                     Entry<Class<?>, Class<?>> newEntry = new SimpleEntry<>(c, associatedClass);
                     Entry<Class<?>, Class<?>> checkEntry = new SimpleEntry<>(associatedClass, c);
-                    if (!relations.contains(newEntry) && !relations.contains(checkEntry) && entityClasses.contains(associatedClass) && entityClasses.contains(c)) {
+                    if (!relations.contains(newEntry) && !relations.contains(checkEntry)) {
                         relations.add(newEntry);
                     }
                 }

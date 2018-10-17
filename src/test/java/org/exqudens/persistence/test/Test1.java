@@ -19,7 +19,7 @@ import org.exqudens.persistence.util.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class TmpTestUtils {
+public class Test1 {
 
     //@Ignore
     @Test
