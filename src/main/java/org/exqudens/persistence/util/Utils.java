@@ -227,42 +227,73 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
     private Collection<Object> unvisitedNodes(Object object, List<Class<?>> entityClasses, Map<Integer, Boolean> matrix) {
         try {
             List<Class<?>> hierarchy = hierarchy(object.getClass(), Arrays.asList(MappedSuperclass.class), Collections.emptyList());
-            Set<String> fieldNames = fieldNames(hierarchy, Arrays.asList(OneToOne.class, OneToMany.class, ManyToOne.class, ManyToMany.class), Arrays.asList(Transient.class), true, false, false);
-            Set<String> methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
+            Collection<Object> result = new LinkedList<>();
+
+            Set<String> fieldNames;
+            Set<String> methodNames;
+
+            fieldNames = fieldNames(hierarchy, Arrays.asList(OneToOne.class, OneToMany.class, ManyToOne.class), Arrays.asList(Transient.class), true, false, false);
+            methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
             for (String methodName : methodNames) {
                 Object value = object.getClass().getMethod(methodName).invoke(object);
-                if (value != null) {
-                    Class<?> type = value.getClass();
-                    if (Collection.class.isAssignableFrom(type)) {
-                        Collection<?> collection = Collection.class.cast(value);
-                        List<Object> result = null;
-                        for (Object o : collection) {
-                            if (!entityClasses.contains(o.getClass())) {
-                                break;
-                            }
-                            Integer key = System.identityHashCode(o);
-                            matrix.putIfAbsent(key, false);
-                            if (!matrix.get(key)) {
-                                if (result == null) {
-                                    result = new LinkedList<>();
-                                }
-                                result.add(o);
-                            }
+                if (value == null) {
+                    continue;
+                }
+                Class<?> type = value.getClass();
+                if (!Collection.class.isAssignableFrom(type)) {
+                    if (!entityClasses.contains(value.getClass())) {
+                        continue;
+                    }
+                    Integer key = System.identityHashCode(value);
+                    matrix.putIfAbsent(key, false);
+                    if (!matrix.get(key)) {
+                        result.add(value);
+                    }
+                } else {
+                    Collection<?> collection = Collection.class.cast(value);
+                    for (Object o : collection) {
+                        if (!entityClasses.contains(o.getClass())) {
+                            break;
                         }
-                        return result;
-                    } else {
-                        if (!entityClasses.contains(value.getClass())) {
-                            continue;
-                        }
-                        Integer key = System.identityHashCode(value);
+                        Integer key = System.identityHashCode(o);
                         matrix.putIfAbsent(key, false);
                         if (!matrix.get(key)) {
-                            return Arrays.asList(value);
+                            result.add(o);
                         }
                     }
                 }
             }
-            return null;
+
+            fieldNames = fieldNames(hierarchy, Arrays.asList(ManyToMany.class), Arrays.asList(Transient.class), true, false, false);
+            methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
+            for (String methodName : methodNames) {
+                Object value = object.getClass().getMethod(methodName).invoke(object);
+                if (value == null) {
+                    continue;
+                }
+                Class<?> type = value.getClass();
+                if (!Collection.class.isAssignableFrom(type)) {
+                    continue;
+                }
+                Collection<?> collection = Collection.class.cast(value);
+                for (Object o : collection) {
+                    if (!entityClasses.contains(o.getClass())) {
+                        break;
+                    }
+                    Integer key = System.identityHashCode(o);
+                    matrix.putIfAbsent(key, false);
+                    if (!matrix.get(key)) {
+                        result.add(o);
+                        result.add(entry(object, o));
+                    }
+                }
+            }
+
+            if (result.isEmpty()) {
+                return null;
+            } else {
+                return result;
+            }
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
