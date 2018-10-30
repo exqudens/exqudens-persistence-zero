@@ -48,6 +48,11 @@ public class Test1 {
             orders.add(new OrderD(null, "order_1", users));
             orders.add(new OrderD(null, "order_2", users));
 
+            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            System.out.println("---");
+            System.out.println(insertOrder.toString());
+            System.out.println("---");
+
             List<Object> allGraphEntities = Utils.INSTANCE.nodes(users.get(0), entityClasses);
             System.out.println("---");
             for (Object entity : allGraphEntities) {

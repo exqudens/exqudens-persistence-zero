@@ -47,11 +47,11 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
 
     public List<List<Class<?>>> graphs(boolean fieldNamesOnlyIfIncludePresent, List<Class<?>> entityClasses) {
         List<Class<? extends Annotation>> hierarchyIncludeAnnotationClasses = Arrays.asList(MappedSuperclass.class);
-        List<Class<? extends Annotation>> hierarchyExcludeAnnotationClasses = Arrays.asList();
-        List<Class<? extends Annotation>> fieldNamesIncludeAnnotationClasses = Arrays.asList(Column.class, JoinColumns.class, JoinColumn.class);
+        List<Class<? extends Annotation>> hierarchyExcludeAnnotationClasses = Collections.emptyList();
+        List<Class<? extends Annotation>> fieldNamesIncludeAnnotationClasses = Arrays.asList(OneToOne.class, OneToMany.class, ManyToOne.class, ManyToMany.class);
         List<Class<? extends Annotation>> fieldNamesExcludeAnnotationClasses = Arrays.asList(Transient.class);
-        List<Class<? extends Annotation>> relationIncludeAnnotationClasses = Arrays.asList(OneToMany.class, ManyToOne.class, ManyToMany.class, OneToOne.class);
-        List<Class<? extends Annotation>> relationExcludeAnnotationClasses = Arrays.asList();
+        List<Class<? extends Annotation>> relationIncludeAnnotationClasses = fieldNamesIncludeAnnotationClasses;
+        List<Class<? extends Annotation>> relationExcludeAnnotationClasses = hierarchyExcludeAnnotationClasses;
         List<Entry<Class<?>, Class<?>>> relations = new ArrayList<>();
 
         for (Class<?> entityClass : entityClasses) {
