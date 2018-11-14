@@ -41,6 +41,13 @@ public class Test1 {
                 OrderD.class
             );
 
+            List<List<Class<?>>> graphs = Utils.INSTANCE.getGraphs(entityClasses);
+            System.out.println("---");
+            for (Object entity : graphs) {
+                System.out.println(entity.toString());
+            }
+            System.out.println("---");
+
             List<UserD> users = new ArrayList<>();
             List<OrderD> orders = new ArrayList<>();
 
@@ -48,12 +55,12 @@ public class Test1 {
             orders.add(new OrderD(null, "order_1", users));
             orders.add(new OrderD(null, "order_2", users));
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
             System.out.println("---");
             System.out.println(insertOrder.toString());
             System.out.println("---");
 
-            List<Object> allGraphEntities = Utils.INSTANCE.nodes(users.get(0), entityClasses);
+            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
             System.out.println("---");
             for (Object entity : allGraphEntities) {
                 System.out.println(entity.toString());
@@ -105,7 +112,7 @@ public class Test1 {
             items.get(0).setOrder(orders.get(0));
             items.get(1).setOrder(orders.get(0));
 
-            List<Object> allGraphEntities = Utils.INSTANCE.nodes(users.get(0), entityClasses);
+            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
             System.out.println("---");
             for (Object entity : allGraphEntities) {
                 System.out.println(entity.toString());
@@ -143,7 +150,7 @@ public class Test1 {
             orders.add(new OrderA(null, null, "orderNumber_1", users.get(0), sellers.get(0), items));
             items.add(new ItemA(null, null, "description_1", orders.get(0), null, new ArrayList<>()));
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
             System.out.println("---");
             System.out.println(insertOrder.toString());
             System.out.println("---");
@@ -180,7 +187,7 @@ public class Test1 {
             orders.get(0).setUser(users.get(0));
             items.get(0).setOrder(orders.get(0));
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.insertOrder(true, orders.get(0).getClass(), entityClasses);
+            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
             System.out.println("---");
             System.out.println(insertOrder.toString());
             System.out.println("---");
