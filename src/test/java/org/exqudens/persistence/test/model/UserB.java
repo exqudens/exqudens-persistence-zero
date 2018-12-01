@@ -1,5 +1,6 @@
 package org.exqudens.persistence.test.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -31,7 +32,9 @@ import lombok.ToString;
 @ToString(of = "email")
 @Entity
 @Table(name = "user_b")
-public class UserB {
+public class UserB implements Serializable {
+
+    private static final long serialVersionUID = -8349871815550350974L;
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id

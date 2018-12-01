@@ -1,0 +1,35 @@
+node: 'order' {
+'number', 'subtotal', 'total'
+'number_1', 10, 10
+'number_2', 10, 10
+'number_3', 10, 10
+}
+node: 'item' {
+'description', 'quantity', 'price'
+'description_1', 1, 10
+'description_2', 2, 10
+'description_3', 3, 10
+'description_4', 4, 10
+'description_5', 5, 10
+'description_6', 6, 10
+}
+relations {
+'order'[1].'items' -> [
+'item'[1],
+'item'[2],
+'item'[3]
+]
+'order'[2].'items' -> [
+'item'[4],
+'item'[5]
+]
+'order'[3].'items' -> [
+'item'[6]
+]
+'item'[1].'order' -> 'order'[1]
+'item'[2].'order' -> 'order'[1]
+'item'[3].'order' -> 'order'[1]
+'item'[4].'order' -> 'order'[2]
+'item'[5].'order' -> 'order'[2]
+'item'[6].'order' -> 'order'[3]
+}

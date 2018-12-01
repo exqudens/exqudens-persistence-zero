@@ -1,0 +1,37 @@
+[{
+    "name": "TestAvro",
+    "type": "record",
+    "namespace": "com.avro.test",
+    "fields": [
+        {
+            "name": "first",
+            "type": "string"
+        },
+        {
+            "name": "last",
+            "type": "string"
+        },
+        {
+            "name": "amount",
+            "type": "double"
+        }
+    ]
+},
+{
+    "name": "TestArrayAvro",
+    "type": "record",
+    "namespace": "com.avro.test",
+    "fields": [
+        {
+            "name": "date",
+            "type": "string"
+        },
+        {
+            "name": "records",
+            "type": {
+                "type": "array",
+                "items": "com.avro.test.TestAvro"
+            }
+        }
+    ]
+}]
