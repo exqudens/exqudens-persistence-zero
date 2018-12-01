@@ -36,7 +36,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test1 {
 
-    //@Ignore
+    @Ignore
     @Test
     public void test0() {
         try {

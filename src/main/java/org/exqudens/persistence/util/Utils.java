@@ -1,16 +1,12 @@
 package org.exqudens.persistence.util;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
@@ -18,7 +14,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -108,104 +103,20 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
         return breadthFirstSearch(graph, relations, rootNodes);
     }
 
-    public Map<Integer, Object> toOne(List<Class<?>> entityClasses, Object entity, Map<Integer, Object> previous) {
-        try {
-            if (previous == null) {
-                previous = new HashMap<>();
-            }
-
-            if (Collection.class.isInstance(entity)) {
-                for (Object o : Collection.class.cast(entity)) {
-                    toMany(entityClasses, o, previous);
-                }
-            } else {
-                if (previous.putIfAbsent(System.identityHashCode(entity), entity) != null) {
-                    return previous;
-                }
-
-                List<Class<? extends Annotation>> hierarchyIncludeAnnotationClasses = Arrays.asList(MappedSuperclass.class);
-                List<Class<? extends Annotation>> hierarchyExcludeAnnotationClasses = Arrays.asList();
-
-                List<Class<?>> hierarchy = hierarchy(entity.getClass(), hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-                Set<String> fieldNames = new HashSet<>();
-                fieldNames.addAll(fieldNames(hierarchy, Arrays.asList(OneToMany.class), Arrays.asList(Transient.class), true, true, true));
-                fieldNames.addAll(fieldNames(hierarchy, Arrays.asList(ManyToMany.class, JoinTable.class), Arrays.asList(Transient.class), true, true, true));
-                Set<String> methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
-
-                for (Method method : entity.getClass().getDeclaredMethods()) {
-                    if (methodNames.contains(method.getName())) {
-                        Object o = method.invoke(entity);
-                        toMany(entityClasses, o, previous);
-                    }
-                }
-            }
-
-            return previous;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Map<Integer, Object> toMany(List<Class<?>> entityClasses, Object entity, Map<Integer, Object> previous) {
-        try {
-            if (previous == null) {
-                previous = new HashMap<>();
-            }
-
-            if (Collection.class.isInstance(entity)) {
-                for (Object o : Collection.class.cast(entity)) {
-                    toMany(entityClasses, o, previous);
-                }
-            } else {
-                if (previous.putIfAbsent(System.identityHashCode(entity), entity) != null) {
-                    return previous;
-                }
-
-                List<Class<? extends Annotation>> hierarchyIncludeAnnotationClasses = Arrays.asList(MappedSuperclass.class);
-                List<Class<? extends Annotation>> hierarchyExcludeAnnotationClasses = Arrays.asList();
-
-                List<Class<?>> hierarchy = hierarchy(entity.getClass(), hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-                Set<String> fieldNames = new HashSet<>();
-                fieldNames.addAll(fieldNames(hierarchy, Arrays.asList(OneToMany.class), Arrays.asList(Transient.class), true, true, true));
-                fieldNames.addAll(fieldNames(hierarchy, Arrays.asList(ManyToMany.class, JoinTable.class), Arrays.asList(Transient.class), true, true, true));
-                Set<String> methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
-
-                for (Method method : entity.getClass().getDeclaredMethods()) {
-                    if (methodNames.contains(method.getName())) {
-                        Object o = method.invoke(entity);
-                        toMany(entityClasses, o, previous);
-                    }
-                }
-            }
-
-            return previous;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public List<Object> getNodes(Object entity, List<Class<?>> entityClasses) {
         try {
             List<Object> result = new ArrayList<>();
             result.add(entity);
             Queue<Object> queue = new LinkedList<>();
             queue.add(entity);
-            Map<Integer, Boolean> matrix = new HashMap<>();
-            matrix.put(System.identityHashCode(entity), true);
+            List<Integer> identityHashCodes = new ArrayList<>();
+            identityHashCodes.add(System.identityHashCode(entity));
             while (!queue.isEmpty()) {
                 Object object = queue.remove();
                 Collection<Object> children = null;
-                while ((children = getUnvisitedNodes(object, entityClasses, matrix)) != null) {
+                while ((children = getUnvisitedNodes(object, entityClasses, identityHashCodes)) != null) {
                     for (Object child : children) {
-                        matrix.put(System.identityHashCode(child), true);
+                        identityHashCodes.add(System.identityHashCode(child));
                         result.add(child);
                         queue.add(child);
                     }
@@ -221,7 +132,7 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
         }
     }
 
-    private Collection<Object> getUnvisitedNodes(Object object, List<Class<?>> entityClasses, Map<Integer, Boolean> matrix) {
+    private Collection<Object> getUnvisitedNodes(Object object, List<Class<?>> entityClasses, List<Integer> identityHashCodes) {
         try {
             List<Class<?>> hierarchy = hierarchy(object.getClass(), Arrays.asList(MappedSuperclass.class), Collections.emptyList());
             Collection<Object> result = new LinkedList<>();
@@ -241,9 +152,8 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
                     if (!entityClasses.contains(value.getClass())) {
                         continue;
                     }
-                    Integer key = System.identityHashCode(value);
-                    matrix.putIfAbsent(key, false);
-                    if (!matrix.get(key)) {
+                    Integer identityHashCode = System.identityHashCode(value);
+                    if (!identityHashCodes.contains(identityHashCode)) {
                         result.add(value);
                     }
                 } else {
@@ -252,9 +162,8 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
                         if (!entityClasses.contains(o.getClass())) {
                             break;
                         }
-                        Integer key = System.identityHashCode(o);
-                        matrix.putIfAbsent(key, false);
-                        if (!matrix.get(key)) {
+                        Integer identityHashCode = System.identityHashCode(o);
+                        if (!identityHashCodes.contains(identityHashCode)) {
                             result.add(o);
                         }
                     }
@@ -277,9 +186,8 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
                     if (!entityClasses.contains(o.getClass())) {
                         break;
                     }
-                    Integer key = System.identityHashCode(o);
-                    matrix.putIfAbsent(key, false);
-                    if (!matrix.get(key)) {
+                    Integer identityHashCode = System.identityHashCode(o);
+                    if (!identityHashCodes.contains(identityHashCode)) {
                         result.add(o);
                         result.add(entry(object, o));
                     }
