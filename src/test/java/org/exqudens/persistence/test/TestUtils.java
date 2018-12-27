@@ -1,6 +1,7 @@
 package org.exqudens.persistence.test;
 
 import java.lang.annotation.Annotation;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,13 +23,15 @@ import org.exqudens.persistence.test.model.AbstractModelC3;
 import org.exqudens.persistence.test.model.ItemA;
 import org.exqudens.persistence.test.model.ItemB;
 import org.exqudens.persistence.test.model.ItemC;
-import org.exqudens.persistence.test.model.OrderC;
 import org.exqudens.persistence.test.model.OrderA;
 import org.exqudens.persistence.test.model.OrderB;
+import org.exqudens.persistence.test.model.OrderC;
+import org.exqudens.persistence.test.model.OrderD;
 import org.exqudens.persistence.test.model.SellerA;
 import org.exqudens.persistence.test.model.UserA;
 import org.exqudens.persistence.test.model.UserB;
 import org.exqudens.persistence.test.model.UserC;
+import org.exqudens.persistence.test.model.UserD;
 import org.exqudens.persistence.util.Utils;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -74,14 +77,14 @@ public class TestUtils {
 
             includeAnnotationClasses = Arrays.asList(Column.class, OneToMany.class);
             ethalon = Arrays.asList("id", "name", "orders").stream().collect(Collectors.toSet());
-            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, true, false, false);
+            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, true, false, false, null, null);
 
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
 
             includeAnnotationClasses = Arrays.asList(Column.class);
             ethalon = Arrays.asList("id", "email", "name", "orders").stream().collect(Collectors.toSet());
-            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false, false, false);
+            result = Utils.INSTANCE.fieldNames(hierarchy, includeAnnotationClasses, excludeAnnotationClasses, false, false, false, null, null);
 
             Assert.assertTrue(ethalon.containsAll(result));
             Assert.assertTrue(result.containsAll(ethalon));
@@ -125,7 +128,7 @@ public class TestUtils {
             result = new ArrayList<>();
             for (Class<?> entityClass : entityClasses) {
                 List<Class<?>> hierarchy = Utils.INSTANCE.hierarchy(entityClass, hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-                Set<String> fieldNames = Utils.INSTANCE.fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false, false, false);
+                Set<String> fieldNames = Utils.INSTANCE.fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false, false, false, null, null);
                 Utils.INSTANCE.relations(entityClasses, hierarchy, fieldNames, relationIncludeAnnotationClasses, relationExcludeAnnotationClasses, result);
             }
 
@@ -141,6 +144,116 @@ public class TestUtils {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
+        }
+    }
+
+    @Test
+    public void test04GetNodesLooped() {
+        try {
+            List<Class<?>> entityClasses = Arrays.asList(
+                SellerA.class,
+                UserA.class,
+                OrderA.class,
+                ItemA.class,
+                UserB.class,
+                OrderB.class,
+                ItemB.class,
+                UserC.class,
+                OrderC.class,
+                ItemC.class,
+                UserD.class,
+                OrderD.class
+            );
+
+            List<UserB> users = new ArrayList<>();
+            List<OrderB> orders = new ArrayList<>();
+            List<ItemB> items = new ArrayList<>();
+
+            users.add(new UserB(null, null, "email_1", null, orders));
+            orders.add(new OrderB(null, null, "orderNumber_1", null, items));
+            items.add(new ItemB(null, null, "description_1", null, users));
+            items.add(new ItemB(null, null, "description_2", null, users));
+
+            users.get(0).setItem(items.get(0));
+            orders.get(0).setUser(users.get(0));
+            items.get(0).setOrder(orders.get(0));
+            items.get(1).setOrder(orders.get(0));
+
+            List<String> ethalon = Arrays.asList(
+                users.get(0).toString(),
+                orders.get(0).toString(),
+                items.get(0).toString(),
+                items.get(1).toString()
+            );
+
+            List<String> result = Utils
+            .INSTANCE
+            .getNodes(users.get(0), entityClasses)
+            .stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
+
+            Assert.assertTrue(ethalon.containsAll(result));
+            Assert.assertTrue(result.containsAll(ethalon));
+
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void test05GetNodesManyToMany() {
+        try {
+            List<Class<?>> entityClasses = Arrays.asList(
+                SellerA.class,
+                UserA.class,
+                OrderA.class,
+                ItemA.class,
+                UserB.class,
+                OrderB.class,
+                ItemB.class,
+                UserC.class,
+                OrderC.class,
+                ItemC.class,
+                UserD.class,
+                OrderD.class
+            );
+
+            List<UserD> users = new ArrayList<>();
+            List<OrderD> orders = new ArrayList<>();
+
+            users.add(new UserD(null, "user_1", orders));
+            orders.add(new OrderD(null, "order_1", users));
+            orders.add(new OrderD(null, "order_2", users));
+
+            List<String> ethalon = Arrays.asList(
+                users.get(0).toString(),
+                orders.get(0).toString(),
+                orders.get(1).toString(),
+                new SimpleEntry<>(users.get(0), orders.get(0)).toString(),
+                new SimpleEntry<>(users.get(0), orders.get(1)).toString()
+            );
+
+            List<String> result = Utils
+            .INSTANCE
+            .getNodes(users.get(0), entityClasses)
+            .stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
+
+            Assert.assertTrue(ethalon.containsAll(result));
+            Assert.assertTrue(result.containsAll(ethalon));
+
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

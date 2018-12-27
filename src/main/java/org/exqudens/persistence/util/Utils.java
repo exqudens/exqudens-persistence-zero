@@ -3,14 +3,10 @@ package org.exqudens.persistence.util;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
@@ -26,8 +22,9 @@ import javax.persistence.Transient;
 import org.exqudens.util.ClassProcessor;
 import org.exqudens.util.EntryProcessor;
 import org.exqudens.util.GraphProcessor;
+import org.exqudens.util.ObjectProcessor;
 
-public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
+public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor, ObjectProcessor {
 
     public static final Utils INSTANCE;
 
@@ -59,7 +56,7 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
 
         for (Class<?> entityClass : entityClasses) {
             List<Class<?>> hierarchy = hierarchy(entityClass, hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-            Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, true, false, false);
+            Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, true, false, false, null, null);
             relations(entityClasses, hierarchy, fieldNames, relationIncludeAnnotationClasses, relationExcludeAnnotationClasses, relations);
         }
 
@@ -69,7 +66,7 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
     public List<Class<?>> getRootNodes(List<Class<?>> entityClasses, Class<?> entityClass, List<List<Class<?>>> graphs) {
         List<Class<?>> graph = graphs.stream().filter(g -> g.contains(entityClass)).findFirst().get();
         List<Class<?>> hierarchy = hierarchy(entityClass, hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-        Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, true, false, false);
+        Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, true, false, false, null, null);
 
         List<Class<? extends Annotation>> relationIncludeAnnotationClasses;
         List<Class<? extends Annotation>> relationExcludeAnnotationClasses;
@@ -96,7 +93,7 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
 
         for (Class<?> graphClass : graph) {
             List<Class<?>> hierarchy = hierarchy(graphClass, hierarchyIncludeAnnotationClasses, hierarchyExcludeAnnotationClasses);
-            Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false, false, false);
+            Set<String> fieldNames = fieldNames(hierarchy, fieldNamesIncludeAnnotationClasses, fieldNamesExcludeAnnotationClasses, false, false, false, null, null);
             relations(entityClasses, hierarchy, fieldNames, relationIncludeAnnotationClasses, relationExcludeAnnotationClasses, relations);
         }
 
@@ -104,108 +101,22 @@ public class Utils implements EntryProcessor, GraphProcessor, ClassProcessor {
     }
 
     public List<Object> getNodes(Object entity, List<Class<?>> entityClasses) {
-        try {
-            List<Object> result = new ArrayList<>();
-            result.add(entity);
-            Queue<Object> queue = new LinkedList<>();
-            queue.add(entity);
-            List<Integer> identityHashCodes = new ArrayList<>();
-            identityHashCodes.add(System.identityHashCode(entity));
-            while (!queue.isEmpty()) {
-                Object object = queue.remove();
-                Collection<Object> children = null;
-                while ((children = getUnvisitedNodes(object, entityClasses, identityHashCodes)) != null) {
-                    for (Object child : children) {
-                        identityHashCodes.add(System.identityHashCode(child));
-                        result.add(child);
-                        queue.add(child);
-                    }
-                }
-            }
-            return result;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Collection<Object> getUnvisitedNodes(Object object, List<Class<?>> entityClasses, List<Integer> identityHashCodes) {
-        try {
-            List<Class<?>> hierarchy = hierarchy(object.getClass(), Arrays.asList(MappedSuperclass.class), Collections.emptyList());
-            Collection<Object> result = new LinkedList<>();
-
-            Set<String> fieldNames;
-            Set<String> methodNames;
-
-            fieldNames = fieldNames(hierarchy, Arrays.asList(OneToOne.class, OneToMany.class, ManyToOne.class), Arrays.asList(Transient.class), true, false, false);
-            methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
-            for (String methodName : methodNames) {
-                Object value = object.getClass().getMethod(methodName).invoke(object);
-                if (value == null) {
-                    continue;
-                }
-                Class<?> type = value.getClass();
-                if (!Collection.class.isAssignableFrom(type)) {
-                    if (!entityClasses.contains(value.getClass())) {
-                        continue;
-                    }
-                    Integer identityHashCode = System.identityHashCode(value);
-                    if (!identityHashCodes.contains(identityHashCode)) {
-                        result.add(value);
-                    }
-                } else {
-                    Collection<?> collection = Collection.class.cast(value);
-                    for (Object o : collection) {
-                        if (!entityClasses.contains(o.getClass())) {
-                            break;
-                        }
-                        Integer identityHashCode = System.identityHashCode(o);
-                        if (!identityHashCodes.contains(identityHashCode)) {
-                            result.add(o);
-                        }
-                    }
-                }
-            }
-
-            fieldNames = fieldNames(hierarchy, Arrays.asList(ManyToMany.class), Arrays.asList(Transient.class), true, false, false);
-            methodNames = fieldNames.stream().map(this::getterName).collect(Collectors.toSet());
-            for (String methodName : methodNames) {
-                Object value = object.getClass().getMethod(methodName).invoke(object);
-                if (value == null) {
-                    continue;
-                }
-                Class<?> type = value.getClass();
-                if (!Collection.class.isAssignableFrom(type)) {
-                    continue;
-                }
-                Collection<?> collection = Collection.class.cast(value);
-                for (Object o : collection) {
-                    if (!entityClasses.contains(o.getClass())) {
-                        break;
-                    }
-                    Integer identityHashCode = System.identityHashCode(o);
-                    if (!identityHashCodes.contains(identityHashCode)) {
-                        result.add(o);
-                        result.add(entry(object, o));
-                    }
-                }
-            }
-
-            if (result.isEmpty()) {
-                return null;
-            } else {
-                return result;
-            }
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        return getNodes(
+            System::identityHashCode,
+            Object.class,
+            entity,
+            entityClasses,
+            hierarchyIncludeAnnotationClasses,
+            hierarchyExcludeAnnotationClasses,
+            Arrays.asList(OneToOne.class, OneToMany.class, ManyToOne.class),
+            Arrays.asList(ManyToMany.class),
+            fieldNamesExcludeAnnotationClasses,
+            true,
+            false,
+            false,
+            null,
+            null
+        );
     }
 
 }

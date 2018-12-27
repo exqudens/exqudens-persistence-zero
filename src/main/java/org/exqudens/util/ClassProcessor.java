@@ -5,15 +5,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -173,11 +173,13 @@ public interface ClassProcessor {
 
     default Set<String> fieldNames(
         List<Class<?>> hierarchy,
-        List<Class<? extends Annotation>> includeAnnotationClasses,
-        List<Class<? extends Annotation>> excludeAnnotationClasses,
-        boolean onlyIfIncludePresent,
-        boolean onlyIfAllIncludePresent,
-        boolean onlyIfAllExcludeNotPresent
+        List<Class<? extends Annotation>> includeAnnotations,
+        List<Class<? extends Annotation>> excludeAnnotations,
+        boolean ifIncludeAnnotationPresent,
+        boolean ifAllIncludeAnnotationsPresent,
+        boolean ifAllExcludeAnnotationsNotPresent,
+        List<Class<?>> includeTypes,
+        List<Class<?>> excludeTypes
     ) {
         Set<String> allFieldNames = new LinkedHashSet<>();
         Set<String> fieldNames = new LinkedHashSet<>();
@@ -187,25 +189,29 @@ public interface ClassProcessor {
                 String fieldName = field.getName();
                 allFieldNames.add(fieldName);
                 Set<Class<? extends Annotation>> fieldAnnotationClasses = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
-                boolean includePresent;
-                boolean excludePresent;
-                if (onlyIfAllIncludePresent) {
-                    includePresent = fieldAnnotationClasses.containsAll(includeAnnotationClasses);
-                } else {
-                    includePresent = fieldAnnotationClasses.stream().filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
+                Class<?> fieldType = field.getType();
+                boolean includePresent = true;
+                boolean excludePresent = false;
+                if (includeAnnotations != null && !includeAnnotations.isEmpty() && ifAllIncludeAnnotationsPresent) {
+                    includePresent = includePresent && fieldAnnotationClasses.containsAll(includeAnnotations);
+                } else if (includeAnnotations != null && !includeAnnotations.isEmpty()) {
+                    includePresent = includePresent && fieldAnnotationClasses.stream().filter(ac -> includeAnnotations.contains(ac)).findAny().isPresent();
                 }
-                if (onlyIfAllExcludeNotPresent) {
-                    excludePresent = fieldAnnotationClasses.containsAll(excludeAnnotationClasses);
-                } else {
-                    excludePresent = fieldAnnotationClasses.stream().filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                if (includeTypes != null && !includeTypes.isEmpty()) {
+                    includePresent = includePresent && includeTypes.contains(fieldType);
+                }
+                if (excludeAnnotations != null && !excludeAnnotations.isEmpty() && ifAllExcludeAnnotationsNotPresent) {
+                    excludePresent = excludePresent || fieldAnnotationClasses.containsAll(excludeAnnotations);
+                } else if (excludeAnnotations != null && !excludeAnnotations.isEmpty()) {
+                    excludePresent = excludePresent || fieldAnnotationClasses.stream().filter(ac -> excludeAnnotations.contains(ac)).findAny().isPresent();
+                }
+                if (excludeTypes != null && !excludeTypes.isEmpty()) {
+                    excludePresent = excludePresent || excludeTypes.contains(fieldType);
                 }
                 if (excludePresent) {
                     fieldNames.remove(fieldName);
                     classFieldNames.remove(fieldName);
-                    continue;
-                } else if (onlyIfIncludePresent && includePresent) {
-                    classFieldNames.add(fieldName);
-                } else if (!onlyIfIncludePresent) {
+                } else if (includePresent) {
                     classFieldNames.add(fieldName);
                 }
             }
@@ -216,18 +222,36 @@ public interface ClassProcessor {
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
             for (Method method : c.getDeclaredMethods()) {
                 String fieldName = methodFieldNameMap.get(method.getName());
-                if (fieldName != null) {
-                    Set<Class<? extends Annotation>> methodAnnotationClasses = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
-                    boolean includePresent;
-                    boolean excludePresent;
-                    includePresent = methodAnnotationClasses.stream().filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
-                    excludePresent = methodAnnotationClasses.stream().filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
-                    if (excludePresent) {
-                        fieldNames.remove(fieldName);
-                        classFieldNames.remove(fieldName);
-                    } else if (includePresent) {
-                        classFieldNames.add(fieldName);
-                    }
+                if (fieldName == null) {
+                    continue;
+                }
+                Set<Class<? extends Annotation>> methodAnnotationClasses = Arrays.stream(method.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
+                Class<?> methodReturnType = method.getReturnType();
+                boolean includePresent = true;
+                boolean excludePresent = false;
+                if (includeAnnotations != null && !includeAnnotations.isEmpty() && ifAllIncludeAnnotationsPresent) {
+                    includePresent = includePresent && methodAnnotationClasses.containsAll(includeAnnotations);
+                } else if (includeAnnotations != null && !includeAnnotations.isEmpty()) {
+                    includePresent = includePresent &&methodAnnotationClasses.stream().filter(ac -> includeAnnotations.contains(ac)).findAny().isPresent();
+                }
+                if (includeTypes != null && !includeTypes.isEmpty()) {
+                    includePresent = includePresent && includeTypes.contains(methodReturnType);
+                }
+                if (excludeAnnotations != null && !excludeAnnotations.isEmpty() && ifAllExcludeAnnotationsNotPresent) {
+                    excludePresent = excludePresent || methodAnnotationClasses.containsAll(excludeAnnotations);
+                } else if (excludeAnnotations != null && !excludeAnnotations.isEmpty()) {
+                    excludePresent = excludePresent || methodAnnotationClasses.stream().filter(ac -> excludeAnnotations.contains(ac)).findAny().isPresent();
+                }
+                if (excludeTypes != null && !excludeTypes.isEmpty()) {
+                    excludePresent = excludePresent || excludeTypes.contains(methodReturnType);
+                }
+                if (excludePresent) {
+                    fieldNames.remove(fieldName);
+                    classFieldNames.remove(fieldName);
+                } else if (ifIncludeAnnotationPresent && includePresent) {
+                    classFieldNames.add(fieldName);
+                } else if (!ifIncludeAnnotationPresent) {
+                    classFieldNames.add(fieldName);
                 }
             }
             fieldNames.addAll(classFieldNames);
@@ -237,8 +261,8 @@ public interface ClassProcessor {
 
     default List<Class<?>> hierarchy(
         Class<?> entityClass,
-        List<Class<? extends Annotation>> includeAnnotationClasses,
-        List<Class<? extends Annotation>> excludeAnnotationClasses
+        List<Class<? extends Annotation>> includeAnnotations,
+        List<Class<? extends Annotation>> excludeAnnotations
     ) {
         List<Class<?>> hierarchy = new ArrayList<>();
         Class<?> superClass = entityClass;
@@ -246,8 +270,14 @@ public interface ClassProcessor {
             hierarchy.add(0, superClass);
             superClass = superClass.getSuperclass();
             if (superClass != null) {
-                boolean includePresent = Arrays.stream(superClass.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotationClasses.contains(ac)).findAny().isPresent();
-                boolean excludePresent = Arrays.stream(superClass.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotationClasses.contains(ac)).findAny().isPresent();
+                boolean includePresent = true;
+                boolean excludePresent = false;
+                if (includeAnnotations != null && !includeAnnotations.isEmpty()) {
+                    includePresent = includePresent && Arrays.stream(superClass.getAnnotations()).map(Annotation::annotationType).filter(ac -> includeAnnotations.contains(ac)).findAny().isPresent();
+                }
+                if (excludeAnnotations != null && !excludeAnnotations.isEmpty()) {
+                    excludePresent = excludePresent || Arrays.stream(superClass.getAnnotations()).map(Annotation::annotationType).filter(ac -> excludeAnnotations.contains(ac)).findAny().isPresent();
+                }
                 if (includePresent && !excludePresent) {
                     continue;
                 } else {

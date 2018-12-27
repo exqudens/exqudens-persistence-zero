@@ -38,7 +38,7 @@ public class Test1 {
 
     @Ignore
     @Test
-    public void test0() {
+    public void test1() {
         try {
             System.out.println(Stream.of(Thread.currentThread().getStackTrace()[1]).map(ste -> "line." + ste.getLineNumber() + ".class." + ste.getClassName() + ".method." + ste.getMethodName()).findFirst().get());
             System.out.println("---");
@@ -105,58 +105,6 @@ public class Test1 {
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Ignore
-    @Test
-    public void test1() {
-        try {
-            List<Class<?>> entityClasses = Arrays.asList(
-                SellerA.class,
-                UserA.class,
-                OrderA.class,
-                ItemA.class,
-                UserB.class,
-                OrderB.class,
-                ItemB.class,
-                UserC.class,
-                OrderC.class,
-                ItemC.class,
-                UserD.class,
-                OrderD.class
-            );
-
-            List<UserB> users = new ArrayList<>();
-            List<OrderB> orders = new ArrayList<>();
-            List<ItemB> items = new ArrayList<>();
-
-            users.add(new UserB(null, null, "email_1", null, orders));
-            orders.add(new OrderB(null, null, "orderNumber_1", null, items));
-            items.add(new ItemB(null, null, "description_1", null, users));
-            items.add(new ItemB(null, null, "description_2", null, users));
-
-            users.get(0).setItem(items.get(0));
-            orders.get(0).setUser(users.get(0));
-            items.get(0).setOrder(orders.get(0));
-            items.get(1).setOrder(orders.get(0));
-
-            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
-            System.out.println("---");
-            for (Object entity : allGraphEntities) {
-                System.out.println(entity.toString());
-            }
-            System.out.println("---");
-
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         } catch (Throwable e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -290,63 +238,6 @@ public class Test1 {
     @Test
     public void test4() {
         try {
-            List<Class<?>> entityClasses = Arrays.asList(
-                SellerA.class,
-                UserA.class,
-                OrderA.class,
-                ItemA.class,
-                UserB.class,
-                OrderB.class,
-                ItemB.class,
-                UserC.class,
-                OrderC.class,
-                ItemC.class,
-                UserD.class,
-                OrderD.class
-            );
-
-            List<List<Class<?>>> graphs = Utils.INSTANCE.getGraphs(entityClasses);
-            System.out.println("---");
-            for (Object entity : graphs) {
-                System.out.println(entity.toString());
-            }
-            System.out.println("---");
-
-            List<UserD> users = new ArrayList<>();
-            List<OrderD> orders = new ArrayList<>();
-
-            users.add(new UserD(null, "user_1", orders));
-            orders.add(new OrderD(null, "order_1", users));
-            orders.add(new OrderD(null, "order_2", users));
-
-            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
-            System.out.println("---");
-            System.out.println(insertOrder.toString());
-            System.out.println("---");
-
-            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
-            System.out.println("---");
-            for (Object entity : allGraphEntities) {
-                System.out.println(entity.toString());
-            }
-            System.out.println("---");
-
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Ignore
-    @Test
-    public void test5() {
-        try {
 
             System.out.println("test01");
 
@@ -381,7 +272,7 @@ public class Test1 {
 
     @Ignore
     @Test
-    public void test6() {
+    public void test5() {
         try {
             System.out.println("test02");
 
