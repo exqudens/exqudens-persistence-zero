@@ -1,107 +1,110 @@
 package org.exqudens.persistence.test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
-import org.exqudens.persistence.test.model.ItemA;
-import org.exqudens.persistence.test.model.ItemB;
-import org.exqudens.persistence.test.model.ItemC;
-import org.exqudens.persistence.test.model.OrderA;
-import org.exqudens.persistence.test.model.OrderB;
-import org.exqudens.persistence.test.model.OrderC;
-import org.exqudens.persistence.test.model.OrderD;
-import org.exqudens.persistence.test.model.SellerA;
-import org.exqudens.persistence.test.model.UserA;
-import org.exqudens.persistence.test.model.UserB;
-import org.exqudens.persistence.test.model.UserC;
-import org.exqudens.persistence.test.model.UserD;
 import org.exqudens.persistence.util.Utils;
-import org.exqudens.util.Table;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test1 {
 
-    @Ignore
     @Test
-    public void test1() {
+    public void test99() {
         try {
-            System.out.println(Stream.of(Thread.currentThread().getStackTrace()[1]).map(ste -> "line." + ste.getLineNumber() + ".class." + ste.getClassName() + ".method." + ste.getMethodName()).findFirst().get());
-            System.out.println("---");
 
             List<Class<?>> entityClasses = Arrays.asList(
-                SellerA.class,
-                UserA.class,
-                OrderA.class,
-                ItemA.class,
-                UserB.class,
-                OrderB.class,
-                ItemB.class,
-                UserC.class,
-                OrderC.class,
-                ItemC.class,
-                UserD.class,
-                OrderD.class
+                Provider.class,
+                Region.class,
+                User.class,
+                Email.class,
+                Order.class,
+                Item.class,
+                Parcel.class
             );
 
-            List<UserB> users = new ArrayList<>();
-            List<OrderB> orders = new ArrayList<>();
-            List<ItemB> items = new ArrayList<>();
+            List<Provider> providers = new ArrayList<>();
+            List<Region> regions = new ArrayList<>();
+            List<User> users = new ArrayList<>();
+            List<Email> emails = new ArrayList<>();
+            List<Order> orders = new ArrayList<>();
+            List<Item> items = new ArrayList<>();
+            List<Parcel> parcels = new ArrayList<>();
 
-            users.add(new UserB(null, null, "email_1", null, orders));
-            orders.add(new OrderB(null, null, "orderNumber_1", null, items));
-            items.add(new ItemB(null, null, "description_1", null, users));
-            items.add(new ItemB(null, null, "description_2", null, users));
+            providers.add(new Provider(null, "provider_1", new ArrayList<>()));
+            regions.add(new Region(null, "region_1", new ArrayList<>()));
+            users.add(new User(null, "user_1", null, null, new ArrayList<>(), new ArrayList<>()));
+            users.add(new User(null, "user_2", null, null, new ArrayList<>(), new ArrayList<>()));
+            emails.add(new Email(null, "email_1", new ArrayList<>()));
+            emails.add(new Email(null, "email_2", new ArrayList<>()));
+            emails.add(new Email(null, "email_3", new ArrayList<>()));
+            orders.add(new Order(null, "order_1", null, null, new ArrayList<>()));
+            orders.add(new Order(null, "order_2", null, null, new ArrayList<>()));
+            items.add(new Item(null, "item_1", null, new ArrayList<>()));
+            items.add(new Item(null, "item_2", null, new ArrayList<>()));
+            items.add(new Item(null, "item_3", null, new ArrayList<>()));
+            parcels.add(new Parcel(null, "parcel_1", null, new ArrayList<>()));
+            parcels.add(new Parcel(null, "parcel_2", null, new ArrayList<>()));
 
-            users.get(0).setItem(items.get(0));
+            providers.get(0).getUsers().add(users.get(0));
+            providers.get(0).getUsers().add(users.get(1));
+            regions.get(0).getUsers().add(users.get(0));
+            regions.get(0).getUsers().add(users.get(1));
+            users.get(0).setProvider(providers.get(0));
+            users.get(1).setProvider(providers.get(0));
+            users.get(0).setRegion(regions.get(0));
+            users.get(1).setRegion(regions.get(0));
+            users.get(0).getEmails().add(emails.get(0));
+            users.get(0).getEmails().add(emails.get(1));
+            users.get(1).getEmails().add(emails.get(2));
+            users.get(0).getOrders().add(orders.get(0));
+            users.get(1).getOrders().add(orders.get(1));
+            emails.get(0).getUsers().add(users.get(0));
+            emails.get(1).getUsers().add(users.get(0));
+            emails.get(2).getUsers().add(users.get(1));
             orders.get(0).setUser(users.get(0));
+            orders.get(1).setUser(users.get(1));
+            orders.get(0).setParcel(parcels.get(0));
+            orders.get(1).setParcel(parcels.get(1));
+            orders.get(0).getItems().add(items.get(0));
+            orders.get(0).getItems().add(items.get(1));
+            orders.get(1).getItems().add(items.get(2));
             items.get(0).setOrder(orders.get(0));
             items.get(1).setOrder(orders.get(0));
+            items.get(2).setOrder(orders.get(1));
+            items.get(0).getParcels().add(parcels.get(0));
+            items.get(1).getParcels().add(parcels.get(0));
+            items.get(2).getParcels().add(parcels.get(1));
+            parcels.get(0).setItem(items.get(0));
+            parcels.get(1).setItem(items.get(2));
+            parcels.get(0).getOrders().add(orders.get(0));
+            parcels.get(1).getOrders().add(orders.get(1));
 
-            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
-            for (Object entity : allGraphEntities) {
-                System.out.println(entity.toString());
-            }
-
-            byte[] byteArray = null;
-
-            try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-                try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-                    objectOutputStream.writeObject(users.get(0));
-                    objectOutputStream.flush();
-                    byteArrayOutputStream.flush();
-                    byteArray = byteArrayOutputStream.toByteArray();
-                }
-            }
-
-            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray)) {
-                try (ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
-                    users.add(UserB.class.cast(objectInputStream.readObject()));
-                }
-            }
-
-            System.out.println(users.size());
-
-            allGraphEntities = Utils.INSTANCE.getNodes(users.get(1), entityClasses);
-            for (Object entity : allGraphEntities) {
-                System.out.println(entity.toString());
-            }
-
+            List<Object> nodes = Utils.INSTANCE.getNodes(regions.get(0), entityClasses);
             System.out.println("---");
+            System.out.println(nodes.size());
+            System.out.println("---");
+            for (Object node : nodes) {
+                System.out.println(node.toString());
+            }
+            System.out.println("---");
+
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
@@ -111,200 +114,151 @@ public class Test1 {
         }
     }
 
-    @Ignore
-    @Test
-    public void test2() {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            System.out.println(Stream.of(Thread.currentThread().getStackTrace()[1]).map(ste -> "line." + ste.getLineNumber() + ".class." + ste.getClassName() + ".method." + ste.getMethodName()).findFirst().get());
-            System.out.println("---");
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Provider {
 
-            List<Class<?>> entityClasses = Arrays.asList(
-                SellerA.class,
-                UserA.class,
-                OrderA.class,
-                ItemA.class
-            );
+        @Id
+        private Long id;
 
-            List<UserA> users = new ArrayList<>();
-            List<SellerA> sellers = new ArrayList<>();
-            List<OrderA> orders = new ArrayList<>();
-            List<ItemA> items = new ArrayList<>();
+        private String name;
 
-            users.add(new UserA(null, null, "email_" + 1, new ArrayList<>()));
+        @OneToMany
+        private List<User> users;
 
-            sellers.add(new SellerA(null, null, "name_1", new ArrayList<>()));
-
-            orders.add(new OrderA(null, null, "orderNumber_" + 1, null, null, new ArrayList<>()));
-            orders.add(new OrderA(null, null, "orderNumber_" + 2, null, null, new ArrayList<>()));
-            orders.add(new OrderA(null, null, "orderNumber_" + 3, null, null, new ArrayList<>()));
-
-            items.add(new ItemA(null, null, "description_" + 1, null, null, new ArrayList<>()));
-            items.add(new ItemA(null, null, "description_" + 2, null, null, new ArrayList<>()));
-            items.add(new ItemA(null, null, "description_" + 3, null, null, new ArrayList<>()));
-
-            users.get(0).getOrders().addAll(orders);
-
-            sellers.get(0).getOrders().addAll(orders);
-
-            orders.stream().forEach(o -> o.setUser(users.get(0)));
-            orders.stream().forEach(o -> o.setSeller(sellers.get(0)));
-            orders.get(1).setItems(items);
-
-            items.stream().forEach(i -> i.setOrder(orders.get(1)));
-
-            items.get(1).getChildren().add(items.get(0));
-            items.get(1).getChildren().add(items.get(2));
-            items.get(0).setParent(items.get(1));
-            items.get(2).setParent(items.get(1));
-
-            emf = JpaTest.createEntityManagerFactory(entityClasses.toArray(new Class[0]));
-            em = emf.createEntityManager();
-
-            try {
-                em.persist(users.get(0));
-                em.persist(sellers.get(0));
-                em.getTransaction().begin();
-                em.flush();
-                em.getTransaction().commit();
-                em.clear();
-                em.close();
-            } catch (Exception e) {
-                em.getTransaction().rollback();
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-
-            users.clear();
-            sellers.clear();
-            orders.clear();
-            items.clear();
-
-            em = emf.createEntityManager();
-            users.add(em.find(UserA.class, 1L));
-            em.close();
-            List<Object> allGraphEntities = Utils.INSTANCE.getNodes(users.get(0), entityClasses);
-            for (Object entity : allGraphEntities) {
-                System.out.println(entity.toString());
-            }
-
-            System.out.println("---");
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            if (em.isOpen()) {
-                em.close();
-            }
-            if (emf.isOpen()) {
-                emf.close();
-            }
-        }
     }
 
-    @Ignore
-    @Test
-    public void test3() {
-        try {
-            System.out.println(Stream.of(Thread.currentThread().getStackTrace()[1]).map(ste -> "line." + ste.getLineNumber() + ".class." + ste.getClassName() + ".method." + ste.getMethodName()).findFirst().get());
-            System.out.println("---");
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Region {
 
-            String[] names = new String[] { "id", "uid", "name" };
-            Serializable[][] rows = new Serializable[][] {
-                { 1, "1", "aaa" },
-                { 2, "2", "bbb" },
-                { 3, "3", "ccc" }
-            };
-            Table table = Table.newInstance(names, rows);
-            Object[][] result = table.getRows(o -> true, o -> true, o -> "aaa".equals(o));
+        @Id
+        private Long id;
 
-            System.out.println(Stream.of(result).map(Arrays::toString).collect(Collectors.joining(System.lineSeparator())));
+        private String name;
 
-            System.out.println("---");
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        @OneToMany
+        private List<User> users;
+
     }
 
-    @Ignore
-    @Test
-    public void test4() {
-        try {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class User {
 
-            System.out.println("test01");
+        @Id
+        private Long id;
 
-            List<Class<?>> entityClasses = Arrays.asList(SellerA.class, UserA.class, OrderA.class, ItemA.class, UserB.class, OrderB.class, ItemB.class, UserC.class, OrderC.class, ItemC.class);
+        private String name;
 
-            List<UserA> users = new ArrayList<>();
-            List<SellerA> sellers = new ArrayList<>();
-            List<OrderA> orders = new ArrayList<>();
-            List<ItemA> items = new ArrayList<>();
+        @ManyToOne
+        @JoinColumn
+        private Provider provider;
 
-            users.add(new UserA(null, null, "email_1", orders));
-            sellers.add(new SellerA(null, null, "name_1", orders));
-            orders.add(new OrderA(null, null, "orderNumber_1", users.get(0), sellers.get(0), items));
-            items.add(new ItemA(null, null, "description_1", orders.get(0), null, new ArrayList<>()));
+        @ManyToOne
+        @JoinColumn
+        private Region region;
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
-            System.out.println("---");
-            System.out.println(insertOrder.toString());
-            System.out.println("---");
+        @ManyToMany
+        @JoinTable
+        private List<Email> emails;
 
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        @OneToMany
+        private List<Order> orders;
+
     }
 
-    @Ignore
-    @Test
-    public void test5() {
-        try {
-            System.out.println("test02");
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Email {
 
-            List<Class<?>> entityClasses = Arrays.asList(SellerA.class, UserA.class, OrderA.class, ItemA.class, UserB.class, OrderB.class, ItemB.class, UserC.class, OrderC.class, ItemC.class);
+        @Id
+        private Long id;
 
-            List<UserB> users = new ArrayList<>();
-            List<OrderB> orders = new ArrayList<>();
-            List<ItemB> items = new ArrayList<>();
+        private String name;
 
-            users.add(new UserB(null, null, "email_1", null, orders));
-            orders.add(new OrderB(null, null, "orderNumber_1", null, items));
-            items.add(new ItemB(null, null, "description_1", null, users));
+        @ManyToMany
+        private List<User> users;
 
-            users.get(0).setItem(items.get(0));
-            orders.get(0).setUser(users.get(0));
-            items.get(0).setOrder(orders.get(0));
+    }
 
-            List<Class<?>> insertOrder = Utils.INSTANCE.getInsertOrder(orders.get(0).getClass(), entityClasses);
-            System.out.println("---");
-            System.out.println(insertOrder.toString());
-            System.out.println("---");
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Order {
 
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        @Id
+        private Long id;
+
+        private String name;
+
+        @ManyToOne
+        @JoinColumn
+        private User user;
+
+        @ManyToOne
+        @JoinColumn
+        private Parcel parcel;
+
+        @OneToMany
+        private List<Item> items;
+
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Item {
+
+        @Id
+        private Long id;
+
+        private String name;
+
+        @ManyToOne
+        @JoinColumn
+        private Order order;
+
+        @OneToMany
+        private List<Parcel> parcels;
+
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString(of = "name")
+    public class Parcel {
+
+        @Id
+        private Long id;
+
+        private String name;
+
+        @ManyToOne
+        @JoinColumn
+        private Item item;
+
+        @OneToMany
+        private List<Order> orders;
+
     }
 
 }

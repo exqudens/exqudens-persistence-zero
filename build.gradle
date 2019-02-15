@@ -1,7 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
 
 group = 'org.exqudens'
 version = '1.0' + '.' + (System.getenv().BUILD_NUMBER?.toInteger() ?: 999999)
@@ -36,33 +34,6 @@ jar {
         attributes 'Project-Group': project.group, 'Project-Name': project.name, 'Project-Version': project.version
     }
 }
-
-eclipse {
-    jdt {
-        sourceCompatibility = property('sourceCompatibility')
-        targetCompatibility = property('targetCompatibility')
-    }
-    project {
-        buildCommands.clear()
-        buildCommand 'org.eclipse.jdt.core.javabuilder'
-        natures = ['org.eclipse.jdt.core.javanature']
-    }
-    classpath {
-        plusConfigurations = [configurations.compileOnly, configurations.testRuntime]
-        minusConfigurations = []
-    }
-}
-
-tasks['cleanEclipse'].doLast {
-    delete '.settings'
-    delete 'bin'
-}
-
-tasks['cleanIdea'].doLast {
-    delete '.idea'
-}
-
-tasks['cleanIdea'].dependsOn 'cleanIdeaWorkspace'
 
 repositories {
     if (System.getenv().GIT_BRANCH == null) {

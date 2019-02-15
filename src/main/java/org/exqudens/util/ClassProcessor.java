@@ -187,6 +187,9 @@ public interface ClassProcessor {
             Set<String> classFieldNames = new LinkedHashSet<>();
             for (Field field : c.getDeclaredFields()) {
                 String fieldName = field.getName();
+                if ("this$0".equals(fieldName)) {
+                    continue;
+                }
                 allFieldNames.add(fieldName);
                 Set<Class<? extends Annotation>> fieldAnnotationClasses = Arrays.stream(field.getAnnotations()).map(Annotation::annotationType).collect(Collectors.toSet());
                 Class<?> fieldType = field.getType();
